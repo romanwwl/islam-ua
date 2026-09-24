@@ -1,0 +1,57 @@
+# Codemagic CI — Islam UA (Capacitor, iOS)
+# Собирает .ipa на облачном Mac и загружает в TestFlight / App Store Connect.
+# Ничего здесь менять не нужно, кроме APP_STORE_APPLE_ID, если у приложения другой Apple ID.
+
+workflows:
+  ios-testflight:
+    name: Islam UA — iOS → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      # Имя интеграции App Store Connect в Codemagic:
+      # Teams → Personal Account → Integrations → Developer Portal → "Codemagic"
+      app_store_connect: Codemagic
+
+    environment:
+      node: 20
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: ua.islamua.app
+      vars:
+        XCODE_PROJECT: "ios/App/App.xcodeproj"
+        XCODE_SCHEME: "App"
+        APP_STORE_APPLE_ID: 6815393222   # Apple ID приложения из App Store Connect (из URL страницы приложения)
+
+    scripts:
+      - name: Install npm dependencies
+        script: npm ci
+
+      - name: Sync web assets into the iOS project
+        script: npx cap sync ios
+
+      - name: Apply code signing to Xcode project
+        script: xcode-project use-profiles --project "$XCODE_PROJECT"
+
+      - name: Set build number (auto-increment)
+        script: |
+          cd ios/App
+          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
+          [ -z "$LATEST" ] && LATEST=0
+          NEXT=$((LATEST + 1))
+          echo "Build number: $NEXT"
+          agvtool new-version -all "$NEXT"
+
+      - name: Build .ipa
+        script: xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        # submit_to_app_store: false  # на ревью отправляем вручную из App Store Connect

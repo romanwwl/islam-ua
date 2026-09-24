@@ -1,0 +1,14 @@
+{
+  "appId": "ua.islamua.app",
+  "appName": "Islam UA",
+  "webDir": "www",
+  "backgroundColor": "#22406e",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#22406e",
+    "scheme": "Islam UA"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
