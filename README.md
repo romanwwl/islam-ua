@@ -1,28 +1,55 @@
-# Islam UA — iOS-обёртка (Capacitor)
+# Islam UA — приложение (Vite + Svelte + Capacitor)
 
-Готовый проект: твой `index.html` + шрифты внутри нативной iOS-оболочки.
-Сборка идёт на облачном Mac в Codemagic, билд сам улетает в TestFlight.
+Одно приложение собирается в два артефакта: сайт (папка `www/`) и iOS-приложение (Capacitor → Codemagic → TestFlight).
 
-## Что внутри
+## Структура
 
 ```
-www/                 ← само приложение (index.html, fonts/, fonts.css) — офлайн, без Google Fonts
-ios/                 ← Xcode-проект (иконка, сплэш, Info.plist уже настроены)
-assets/              ← исходники иконки и сплэша
+src/
+  main.js              ← точка входа: шрифты, стили, монтирование App
+  App.svelte           ← шапка (Время намаза · логотип · Тесты) и переключение экранов
+  app.css              ← все стили
+  components/
+    Tests.svelte       ← пять тестов: Алфавит, Имена Аллаха, Словарь, Сира, Суры
+    Prayer.svelte      ← время намаза, джума, настройки
+  lib/
+    quiz.js            ← движок тестов (режимы, колода, варианты ответа)
+    prayer.js          ← астрономический расчёт, методы, пресет «Мечеть АМУ»
+    storage.js         ← безопасный localStorage
+  data/                ← контент в JSON: letters, names, words, sira, surahs, cities
+public/
+  logo.png
+  audio/letters/01..28.mp3   ← произношение букв (порядок = порядок алфавита)
+ios/                   ← Xcode-проект (иконка, сплэш, Info.plist)
+assets/                ← исходники иконки и сплэша
+docs/index.html        ← политика конфиденциальности (GitHub Pages)
 capacitor.config.json
-codemagic.yaml       ← инструкция для облачной сборки
-docs/index.html      ← политика конфиденциальности (для GitHub Pages)
+codemagic.yaml         ← облачная сборка iOS
+netlify.toml           ← настройки для сайта на Netlify
 ```
 
-Что уже сделано:
-- Bundle ID `ua.islamua.app`, название «Islam UA», версия 1.0
-- Иконка и сплэш из логотипа
-- Тёмная светлая строка статуса, только портрет, только iPhone (iPad добавим позже, если надо)
-- Отступы под «чёлку» и home-indicator
-- Текст запроса геолокации (для «Моё местоположение» во времени намаза)
-- `ITSAppUsesNonExemptEncryption = false` — TestFlight не будет спрашивать про шифрование
+`www/` — результат сборки, в git не хранится (собирается командой `npm run build` — локально или в Codemagic/Netlify).
+
+## Команды
+
+```
+npm install       # один раз
+npm run dev       # локальный сервер с горячей перезагрузкой
+npm run build     # сборка в www/
+npm run preview   # посмотреть собранную версию
+```
+
+## Время намаза
+
+По умолчанию — пресет **«Мечеть АМУ, Киев»**: метод ISNA (15°/15°), Аср стандартный, поправки мечети Аср +2 мин и Магриб +5 мин, джума 13:30 (сверено с amu.org.ua). Остальные методы (Лига исламского мира, Диянет, ISNA, Египет, Умм аль-Кура, Карачи) — на выбор, время джумы задаётся вручную. Настройки хранятся в localStorage (`islamua_prayer`).
+
+## Контент
+
+Все данные — в `src/data/*.json`. Чтобы поправить перевод, толкование или вопрос, правится JSON; код трогать не нужно. Аудио для новых разделов кладётся в `public/audio/<раздел>/` и путь указывается в поле `audio` соответствующего JSON.
 
 ---
+
+## Первичная настройка (уже сделано, оставлено для справки)
 
 ## Шаг 1. Залить проект на GitHub
 
@@ -82,10 +109,9 @@ App Store Connect → Islam UA → **Распространение** → вер
 
 ## Как выпускать обновления
 
-1. Правишь `www/index.html` (или кладёшь новый файл вместо него).
-2. GitHub Desktop → Commit → Push.
-3. Хочешь новую версию в сторе — в `ios/App/App.xcodeproj/project.pbxproj` замени обе строки `MARKETING_VERSION = 1.0;` на `1.1` и т.д. (build number Codemagic увеличивает сам).
-4. Codemagic → Start new build → билд в TestFlight → в App Store Connect «+» новая версия → выбрать билд → отправить.
+1. Правки в `src/` (код) или `src/data/` (контент) → Commit → Push в `main`.
+2. Хочешь новую версию в сторе — в `ios/App/App.xcodeproj/project.pbxproj` замени обе строки `MARKETING_VERSION = 1.1;` на `1.2` и т.д. (build number Codemagic увеличивает сам).
+3. Codemagic → Start new build → билд в TestFlight → в App Store Connect «+» новая версия → выбрать билд → отправить.
 
 ## Если что-то пошло не так
 

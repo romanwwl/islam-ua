@@ -1,3 +1,6 @@
+# Сборка Vite (генерируется командой npm run build)
+www/
+
 node_modules/
 ios/App/Pods/
 ios/App/App.xcworkspace/xcuserdata/
