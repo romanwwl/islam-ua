@@ -51,9 +51,16 @@ workflows:
       - name: Set build number (auto-increment)
         script: |
           cd ios/App
-          LATEST=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0)
-          [ -z "$LATEST" ] && LATEST=0
-          NEXT=$((LATEST + 1))
+          # Номер сборки должен быть строго больше предыдущего загруженного в App Store Connect.
+          # Берём максимум из: последнего номера в TestFlight/App Store (если API ответил) и номера сборки Codemagic + 10.
+          TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || true)
+          AS=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || true)
+          echo "TestFlight latest: '${TF:-—}', App Store latest: '${AS:-—}', Codemagic build: $BUILD_NUMBER"
+          case "$TF" in ''|*[!0-9]*) TF=0;; esac
+          case "$AS" in ''|*[!0-9]*) AS=0;; esac
+          NEXT=$(( (TF > AS ? TF : AS) + 1 ))
+          CM=$(( BUILD_NUMBER + 10 ))
+          [ "$CM" -gt "$NEXT" ] && NEXT=$CM
           echo "Build number: $NEXT"
           agvtool new-version -all "$NEXT"
 
