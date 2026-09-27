@@ -54,7 +54,12 @@ h1{ font-size:17px; font-weight:700; letter-spacing:1.2px; }
 .translit .lat{ color:var(--muted); }
 
 .prompt{ text-align:center; color:var(--muted); font-size:14px; }
-.promptrow{ display:flex; align-items:center; justify-content:center; min-height:44px; margin:16px 0 12px; }
+.promptrow{ display:flex; align-items:center; justify-content:center; gap:10px; min-height:44px; margin:16px 0 12px; }
+.next.ghost{ background:transparent; color:var(--muted); box-shadow:none; border:1px solid var(--line); font-weight:600; }
+.next.ghost:hover{ color:var(--ink); border-color:var(--muted); }
+.result .rbtns{ display:flex; flex-direction:column; gap:10px; align-items:center; margin-top:26px; }
+.result .rbtns .restart{ margin:0; }
+.result .rbtns .ghost{ font-size:14px; padding:11px 22px; }
 
 .options{ display:grid; grid-template-columns:1fr 1fr; gap:11px; }
 .opt{

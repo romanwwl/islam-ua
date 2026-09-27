@@ -5,21 +5,30 @@
 
   let mode = $state('alphabet');
   let deck = $state([]);
-  let pos = $state(-1);
-  let score = $state(0), total = $state(0), streak = $state(0);
-  let current = $state(null);
-  let options = $state([]);
-  let chosen = $state(null);        // выбранный вариант (объект)
-  let answered = $state(false);
+  let pos = $state(0);
+  let optsCache = $state([]);       // варианты ответа по каждому вопросу (чтобы при возврате назад были те же)
+  let answers = $state([]);         // выбранный вариант по каждому вопросу (null — ещё не отвечал)
+  let hints = $state([]);           // открыта ли подсказка (Суры)
   let finished = $state(false);
   let formsMode = $state(false);
-  let hintOpen = $state(false);
   let playing = $state(false);
   let nextBtn = $state(null), restartBtn = $state(null);
 
   const cfg = $derived(MODES[mode]);
   const label = item => MODES[mode].label(item);
+  const current = $derived(deck[pos] ?? null);
+  const options = $derived(optsCache[pos] ?? []);
+  const chosen = $derived(answers[pos] ?? null);
+  const answered = $derived(chosen !== null);
+  const hintOpen = $derived(!!hints[pos]);
   const correctLabel = $derived(current ? label(current) : '');
+  const isCorrect = (i) => answers[i] != null && label(answers[i]) === label(deck[i]);
+  const total = $derived(answers.filter(a => a != null).length);
+  const score = $derived(deck.reduce((n, _, i) => n + (isCorrect(i) ? 1 : 0), 0));
+  // серия — подряд верных с конца отвеченных
+  const streak = $derived.by(() => { let k = 0; for (let i = total - 1; i >= 0; i--) { if (isCorrect(i)) k++; else break; } return k; });
+  const mistakes = $derived(deck.reduce((n, _, i) => n + (answers[i] != null && !isCorrect(i) ? 1 : 0), 0));
+  const allAnswered = $derived(deck.length > 0 && total === deck.length);
   const accuracy = $derived(total ? Math.round(score / total * 100) + '%' : '—');
   const progress = $derived(deck.length ? Math.min(total / deck.length * 100, 100) : 0);
   const pct = $derived(deck.length ? Math.round(score / deck.length * 100) : 0);
@@ -29,23 +38,36 @@
 
   function start() {
     deck = buildDeck(mode);
-    pos = -1; score = 0; total = 0; streak = 0;
+    optsCache = []; answers = []; hints = [];
     finished = false;
-    next();
+    goTo(0);
+  }
+
+  function goTo(i) {
+    pos = i;
+    if (!optsCache[i]) { optsCache[i] = buildOptions(mode, deck[i]); }
   }
 
   function next() {
-    pos++;
-    if (pos >= deck.length) { finished = true; queueMicrotask(() => restartBtn?.focus()); return; }
-    answered = false; chosen = null; hintOpen = false;
-    current = deck[pos];
-    options = buildOptions(mode, current);
+    if (pos + 1 >= deck.length) {
+      if (allAnswered) { finished = true; queueMicrotask(() => restartBtn?.focus()); }
+      return;
+    }
+    goTo(pos + 1);
+  }
+
+  function back() { if (pos > 0) goTo(pos - 1); }
+
+  // с экрана результата — к разбору: на первую ошибку (или на первый вопрос)
+  function review() {
+    finished = false;
+    const first = deck.findIndex((_, i) => answers[i] != null && !isCorrect(i));
+    goTo(first >= 0 ? first : 0);
   }
 
   function choose(opt) {
     if (answered) return;
-    answered = true; chosen = opt; total++;
-    if (label(opt) === correctLabel) { score++; streak++; } else { streak = 0; }
+    answers[pos] = opt;
     queueMicrotask(() => nextBtn?.focus());
   }
 
@@ -83,9 +105,10 @@
   function onKey(e) {
     if (!active) return;
     if (finished) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); start(); } return; }
+    if (e.key === 'ArrowLeft' || e.key === 'Backspace') { e.preventDefault(); back(); return; }
     if (!answered && ['1', '2', '3', '4'].includes(e.key)) {
       const o = options[+e.key - 1]; if (o) choose(o);
-    } else if (answered && (e.key === 'Enter' || e.key === ' ')) {
+    } else if (answered && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight')) {
       e.preventDefault(); next();
     }
   }
@@ -138,7 +161,7 @@
         {#if hintOpen}
           <div class="hint-box">{current.t} сура · {current.ay} {ayatWord(current.ay)} · {current.hint}</div>
         {:else if !answered}
-          <button class="hint-btn" onclick={() => hintOpen = true}>Подсказка</button>
+          <button class="hint-btn" onclick={() => hints[pos] = true}>Подсказка</button>
         {/if}
       {/if}
     </div>
@@ -158,10 +181,11 @@
     {/if}
 
     <div class="promptrow">
+      {#if pos > 0}
+        <button class="next ghost" onclick={back}>← Назад</button>
+      {/if}
       {#if answered}
-        <button class="next" bind:this={nextBtn} onclick={next}>{pos + 1 >= deck.length ? 'Результат →' : 'Дальше →'}</button>
-      {:else}
-        <div class="prompt">{cfg.prompt}</div>
+        <button class="next" bind:this={nextBtn} onclick={next}>{pos + 1 >= deck.length ? (allAnswered ? 'Результат →' : 'Дальше →') : 'Дальше →'}</button>
       {/if}
     </div>
 
@@ -228,6 +252,9 @@
     <div class="rbig">{pct}%</div>
     <div class="rmsg">{resultMessage(pct)}</div>
     <div class="rline">Верно {score} из {deck.length}</div>
-    <button class="next restart" bind:this={restartBtn} onclick={start}>Пройти заново</button>
+    <div class="rbtns">
+      <button class="next restart" bind:this={restartBtn} onclick={start}>Пройти заново</button>
+      <button class="next ghost" onclick={review}>{mistakes ? `Разобрать ошибки (${mistakes})` : 'Посмотреть ответы'}</button>
+    </div>
   </div>
 {/if}
