@@ -46,11 +46,13 @@ export async function reschedule(state, notify) {
       if (!at || at <= now) return;
       list.push({
         id: d * 10 + i + 1,
-        // одна строка: «Магриб · 18:50 — Киев»
-        title: `${PRAYER_RU[k]} · ${at.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} — ${city}`,
-        body: '',
+        // «Магриб · 18:50» / «Киев»
+        title: `${PRAYER_RU[k]} · ${at.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`,
+        body: city,
         schedule: { at, allowWhileIdle: true },
         sound: 'default',
+        // срочное: пробивается через «Не беспокоить»/Фокус (нужна capability Time Sensitive Notifications у App ID)
+        interruptionLevel: 'timeSensitive',
       });
     });
   }
