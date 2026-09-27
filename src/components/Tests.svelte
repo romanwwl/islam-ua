@@ -1,5 +1,6 @@
 <script>
-  import { MODES, MODE_KEYS, NONCONNECT, displayForm, letterForms, highlightWord, ayatWord, buildDeck, buildOptions, resultMessage } from '../lib/quiz.js';
+  import { MODES, MODE_KEYS, NONCONNECT, displayForm, letterForms, highlightWord, ayatWord, buildDeck, buildOptions, resultMessage, roundCount, surahName } from '../lib/quiz.js';
+  import { load, save } from '../lib/storage.js';
 
   let { active = false } = $props();
 
@@ -16,6 +17,11 @@
   let hintOpen = $state(false);
   let playing = $state(false);
   let nextBtn = $state(null), restartBtn = $state(null);
+  // Упорядоченные режимы (Коран): номер текущего раунда, запоминается между сессиями
+  const ROUNDS_KEY = 'islamua_rounds';
+  let rounds = $state(load(ROUNDS_KEY, {}));
+  const roundIdx = $derived(cfg.ordered ? Math.min(rounds[mode] || 0, roundCount(mode) - 1) : 0);
+  const roundsTotal = $derived(roundCount(mode));
 
   const cfg = $derived(MODES[mode]);
   const label = item => MODES[mode].label(item);
@@ -28,7 +34,7 @@
   const glyph = $derived(current && mode === 'alphabet' ? displayForm(current.c, formsMode) : '');
 
   function start() {
-    deck = buildDeck(mode);
+    deck = buildDeck(mode, roundIdx);
     pos = -1; score = 0; total = 0; streak = 0;
     finished = false;
     next();
@@ -55,6 +61,19 @@
     start();
   }
 
+  function goRound(i) {
+    rounds = { ...rounds, [mode]: i };
+    save(ROUNDS_KEY, rounds);
+    start();
+  }
+  function nextRound() { goRound((roundIdx + 1) % roundsTotal); }
+
+  const refLabel = w => {
+    const [s, a] = w.ref.split(':');
+    return `Сура ${s} «${surahName(+s)}», аят ${a}`;
+  };
+  const timesWord = n => { const m = n % 100, d = n % 10; return (m >= 11 && m <= 14) ? 'раз' : (d === 1 ? 'раз' : (d >= 2 && d <= 4 ? 'раза' : 'раз')); };
+
   function optClass(o) {
     if (!answered) return '';
     if (label(o) === correctLabel) return 'correct';
@@ -76,7 +95,7 @@
   /* ---- Клавиатура (для веб-версии) ---- */
   function onKey(e) {
     if (!active) return;
-    if (finished) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); start(); } return; }
+    if (finished) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cfg.ordered ? nextRound() : start(); } return; }
     if (!answered && ['1', '2', '3', '4'].includes(e.key)) {
       const o = options[+e.key - 1]; if (o) choose(o);
     } else if (answered && (e.key === 'Enter' || e.key === ' ')) {
@@ -95,7 +114,7 @@
   {/each}
 </div>
 
-<div class="counter">{finished ? deck.length : pos + 1} / {deck.length}</div>
+<div class="counter">{finished ? deck.length : pos + 1} / {deck.length}{#if cfg.ordered}&nbsp;· раунд {roundIdx + 1} из {roundsTotal}{/if}</div>
 <div class="bar"><i style="width:{progress}%"></i></div>
 
 {#if !finished && current}
@@ -112,6 +131,9 @@
         {:else if mode === 'names'}
           <div class="glyph name">{current.ar}</div>
           <div class="translit">{current.ru}&nbsp;&nbsp;·&nbsp;&nbsp;<span class="lat">{current.lat}</span></div>
+        {:else if mode === 'quran'}
+          <div class="glyph name">{current.ar}</div>
+          <div class="translit">{current.ru}</div>
         {:else}
           <div class="glyph name">{current.ar}</div>
           <div class="translit">{current.ru}</div>
@@ -192,6 +214,17 @@
             <div class="rname"><span class="arname">{current.ar}</span></div>
             <div class="rvars">{current.lb}</div>
             <div class="rbody">{current.t} сура · {current.ay} {ayatWord(current.ay)}. {current.hint}</div>
+          {:else if mode === 'quran'}
+            <div class="rname">{current.ar} · {current.ru}</div>
+            <div class="rvars">{current.tr}</div>
+            {#if current.note}<div class="rbody" style="margin-top:4px">{current.note}</div>{/if}
+            <div class="freq">Встречается в Коране <b>{current.n}</b> {timesWord(current.n)}</div>
+            <div class="seclbl">Пример из Корана</div>
+            <div class="example">
+              <div class="ex-ayah">{current.ex}</div>
+              <div class="ex-tr">{current.ext}</div>
+              <div class="ex-ref">{refLabel(current)}</div>
+            </div>
           {/if}
         </div>
       {/key}
@@ -205,9 +238,17 @@
   </div>
 {:else if finished}
   <div class="result">
+    {#if cfg.ordered}<div class="rround">Раунд {roundIdx + 1} из {roundsTotal}</div>{/if}
     <div class="rbig">{pct}%</div>
     <div class="rmsg">{resultMessage(pct)}</div>
     <div class="rline">Верно {score} из {deck.length}</div>
-    <button class="next restart" bind:this={restartBtn} onclick={start}>Пройти заново</button>
+    {#if cfg.ordered}
+      <div class="rbtns">
+        <button class="next restart" bind:this={restartBtn} onclick={nextRound}>{roundIdx + 1 < roundsTotal ? 'Следующий раунд →' : 'Начать с первого раунда'}</button>
+        <button class="next ghost" onclick={start}>Пройти этот раунд заново</button>
+      </div>
+    {:else}
+      <button class="next restart" bind:this={restartBtn} onclick={start}>Пройти заново</button>
+    {/if}
   </div>
 {/if}

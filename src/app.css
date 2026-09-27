@@ -23,7 +23,6 @@ h1{ font-size:17px; font-weight:700; letter-spacing:1.2px; }
 .tabs{ display:grid; grid-template-columns:repeat(6,1fr); gap:5px; background:var(--bg2); border:1px solid var(--line); border-radius:13px; padding:4px; margin-bottom:14px; }
 .tab{ flex:1; font-family:inherit; font-size:13px; font-weight:600; color:var(--muted); background:transparent; border:none; border-radius:10px; padding:8px 4px; cursor:pointer; transition:color .2s ease, background .2s ease; }
 .tab{ grid-column:span 2; }
-.tab:nth-child(4), .tab:nth-child(5){ grid-column:span 3; }
 .tab.active{ color:#0f2036; background:linear-gradient(180deg,var(--gold),var(--gold-soft)); }
 
 .counter{ text-align:center; font-size:12px; color:var(--muted); letter-spacing:1px; margin-bottom:8px; }
@@ -101,6 +100,14 @@ h1{ font-size:17px; font-weight:700; letter-spacing:1.2px; }
 .example .ex-word{ font-family:'Amiri',serif; font-size:44px; color:var(--ink); direction:rtl; line-height:1.25; }
 .example .ex-word .hi{ color:var(--gold); }
 .example .ex-tr{ color:var(--muted); font-size:14px; margin-top:4px; }
+.example .ex-ayah{ font-family:'Amiri',serif; font-size:26px; color:var(--ink); direction:rtl; line-height:1.9; text-align:right; }
+.example .ex-ref{ color:var(--gold-soft); font-size:12px; margin-top:6px; letter-spacing:.2px; }
+.freq{ display:inline-block; margin-top:2px; font-size:13px; color:var(--muted); }
+.freq b{ color:var(--gold); font-weight:600; }
+.result .rround{ color:var(--gold-soft); font-size:12px; letter-spacing:.6px; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
+.result .rbtns{ display:flex; flex-direction:column; gap:10px; align-items:center; margin-top:26px; }
+.result .rbtns .next{ margin:0; }
+.result .rbtns .ghost{ background:transparent; color:var(--muted); box-shadow:none; border:1px solid var(--line); font-size:14px; padding:11px 22px; }
 
 .controls{ display:flex; align-items:center; margin-top:16px; gap:12px; min-height:44px; }
 .toggle{ display:flex; align-items:center; gap:9px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none; }

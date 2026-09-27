@@ -3,6 +3,7 @@ import NAMES from '../data/names.json';
 import WORDS from '../data/words.json';
 import SIRA from '../data/sira.json';
 import SURAHS from '../data/surahs.json';
+import QURAN from '../data/quran.json';
 
 /* Режимы тестов. round — сколько вопросов в одном прохождении (иначе все). */
 export const MODES = {
@@ -11,6 +12,8 @@ export const MODES = {
   dict:     { title: 'Словарь',      data: WORDS,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30 },
   sira:     { title: 'Сира',         data: SIRA,    prompt: 'Выберите правильный ответ', label: x => (x.ans !== undefined ? x.ans : x.a[0]), round: 30 },
   surah:    { title: 'Суры',         data: SURAHS,  prompt: 'Как называется эта сура?',  label: s => s.lb },
+  // Слова Корана: по порядку частотности, раундами по 30; варианты ответа — той же категории (частица/имя/глагол)
+  quran:    { title: 'Коран',        data: QURAN,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30, ordered: true, sameCat: true },
 };
 export const MODE_KEYS = Object.keys(MODES);
 
@@ -65,12 +68,28 @@ export function ayatWord(n) {
   return 'аятов';
 }
 
-/* Колода на одно прохождение */
-export function buildDeck(mode) {
+/* Сколько раундов в упорядоченном режиме */
+export function roundCount(mode) {
   const cfg = MODES[mode];
+  return cfg.ordered ? Math.ceil(cfg.data.length / cfg.round) : 1;
+}
+
+/* Колода на одно прохождение. roundIdx — номер раунда (с 0) для упорядоченных режимов */
+export function buildDeck(mode, roundIdx = 0) {
+  const cfg = MODES[mode];
+  if (cfg.ordered) {
+    const from = roundIdx * cfg.round;
+    return shuffle(cfg.data.slice(from, from + cfg.round));
+  }
   let d = shuffle([...cfg.data]);
   if (cfg.round) d = d.slice(0, Math.min(cfg.round, d.length));
   return d;
+}
+
+/* Название суры по номеру (для примеров из Корана) */
+export function surahName(n) {
+  const s = SURAHS[n - 1];
+  return s ? s.ru : '';
 }
 
 /* Варианты ответа для текущего вопроса */
@@ -80,7 +99,12 @@ export function buildOptions(mode, current) {
   const label = cfg.label;
   const correct = label(current);
   const opts = [current];
-  const pool = shuffle(cfg.data.filter(x => label(x) !== correct));
+  let pool = cfg.data.filter(x => label(x) !== correct);
+  if (cfg.sameCat) {
+    const same = pool.filter(x => x.cat === current.cat);
+    if (same.length >= 3) pool = same;
+  }
+  pool = shuffle(pool);
   for (const x of pool) {
     if (opts.length >= 4) break;
     if (!opts.some(o => label(o) === label(x))) opts.push(x);
