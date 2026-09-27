@@ -72,17 +72,8 @@
   }
 
   function onCity() { persist(); if (st.city === 'geo') askGeo(); else compute(); }
-  function onMethod() {
-    // при смене пресета джума берётся из него, если пользователь не задавал свою
-    persist(); compute();
-  }
+  function onMethod() { persist(); compute(); }
   function onAsr() { persist(); compute(); }
-  function onJumuah(e) {
-    const v = e.target.value;
-    st.jumuah = v; // '' = без джумы
-    persist(); compute();
-  }
-  function resetJumuah() { st.jumuah = null; persist(); compute(); }
 
   onMount(() => {
     if (st.city === 'geo' && !st.geo) askGeo(); else compute();
@@ -127,24 +118,17 @@
     <select class="full" bind:value={st.method} onchange={onMethod}>
       {#each Object.entries(METHODS) as [k, m]}<option value={k}>{m.name}</option>{/each}
     </select>
-    <select bind:value={st.asr} onchange={onAsr}>
+    <select class="full" bind:value={st.asr} onchange={onAsr}>
       <option value="1">Аср: стандарт</option>
       <option value="2">Аср: ханафи</option>
     </select>
-    <label class="field">
-      <span>Джума</span>
-      <input type="time" value={jumuah} onchange={onJumuah}>
-      {#if st.jumuah !== null && st.jumuah !== undefined}
-        <button type="button" class="hint-btn" style="margin:0;padding:3px 9px;font-size:11px" onclick={resetJumuah} title="Вернуть значение пресета">↺</button>
-      {/if}
-    </label>
   </div>
 
   <div class="pnote">
     {#if st.method === 'amu'}
-      Расписание мечети Асоціації мусульман України (Киев, Нивки): метод ISNA с поправками мечети. Джума — 13:30. Для других мечетей выберите свой метод расчёта и укажите время джумы.
+      Расписание мечети Асоціації мусульман України (Киев, Нивки): метод ISNA с поправками мечети, джума в 13:30. Для другой мечети выберите её метод расчёта.
     {:else}
-      Времена рассчитываются астрономически для выбранного города и обновляются автоматически каждый день. Для точного соответствия расписанию вашей мечети выберите её метод расчёта и укажите время джумы.
+      Времена рассчитываются астрономически для выбранного города и обновляются автоматически каждый день. Для точного соответствия расписанию вашей мечети выберите её метод расчёта.
     {/if}
   </div>
 </div>

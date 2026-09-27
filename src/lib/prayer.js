@@ -23,7 +23,7 @@ export const METHODS = {
 export const PRAYER_KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
 export const PRAYER_RU = { fajr: 'Фаджр', sunrise: 'Восход', dhuhr: 'Зухр', asr: 'Аср', maghrib: 'Магриб', isha: 'Иша', jumuah: 'Джума' };
 
-export const DEFAULT_STATE = { city: '0', method: 'amu', asr: '1', geo: null, jumuah: null };
+export const DEFAULT_STATE = { city: '0', method: 'amu', asr: '1', geo: null };
 
 const DR = Math.PI / 180, RD = 180 / Math.PI;
 const fixAngle = a => { a = a - 360 * Math.floor(a / 360); return a < 0 ? a + 360 : a; };
@@ -101,9 +101,8 @@ export function paramsFor(state) {
   return { fajr: m.fajr, isha: m.isha, ishaMin: m.ishaMin, asr: (+state.asr || 1), offsets: m.offsets || {} };
 }
 
-/* Время джумы «HH:MM» или '' — заданное пользователем либо из пресета */
+/* Время джумы «HH:MM» из пресета мечети (или '' — если у метода нет фиксированной джумы) */
 export function jumuahFor(state) {
-  if (state.jumuah !== null && state.jumuah !== undefined) return state.jumuah;
   const m = METHODS[state.method];
   return (m && m.jumuah) || '';
 }
