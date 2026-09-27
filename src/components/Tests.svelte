@@ -81,7 +81,6 @@
     const [s, a] = w.ref.split(':');
     return `Сура ${s} «${surahName(+s)}», аят ${a}`;
   };
-  const timesWord = n => { const m = n % 100, d = n % 10; return (m >= 11 && m <= 14) ? 'раз' : (d === 1 ? 'раз' : (d >= 2 && d <= 4 ? 'раза' : 'раз')); };
 
   function optClass(o) {
     if (!answered) return '';
@@ -229,10 +228,10 @@
             <div class="rname">{current.ar} · {current.ru}</div>
             <div class="rvars">{current.tr}</div>
             {#if current.note}<div class="rbody" style="margin-top:4px">{current.note}</div>{/if}
-            <div class="freq">Встречается в Коране <b>{current.n}</b> {timesWord(current.n)}</div>
             <div class="seclbl">Пример из Корана</div>
             <div class="example">
               <div class="ex-ayah">{current.ex}</div>
+              <div class="ex-tl">{current.exl}</div>
               <div class="ex-tr">{current.ext}</div>
               <div class="ex-ref">{refLabel(current)}</div>
             </div>
