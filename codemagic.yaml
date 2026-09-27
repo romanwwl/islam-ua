@@ -8,13 +8,15 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
 
-    # Сборка стартует автоматически при пуше тега вида v1.2.0 (обычные коммиты в main не собираются)
+    # Сборка стартует автоматически при пуше в ветку release (обычные коммиты в main не собираются).
+    # Выпуск = git push origin main:release
     triggering:
       events:
-        - tag
-      tag_patterns:
-        - pattern: 'v*'
+        - push
+      branch_patterns:
+        - pattern: release
           include: true
+          source: true
       cancel_previous_builds: true
 
     integrations:
