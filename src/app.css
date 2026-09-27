@@ -180,6 +180,5 @@ body{
   padding-right:calc(18px + env(safe-area-inset-right));
   -webkit-tap-highlight-color:transparent;
   -webkit-touch-callout:none;
-  overscroll-behavior-y:none;
 }
 button, .tab, .mbtn { -webkit-user-select:none; user-select:none; }
