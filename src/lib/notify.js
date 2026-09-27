@@ -46,8 +46,9 @@ export async function reschedule(state, notify) {
       if (!at || at <= now) return;
       list.push({
         id: d * 10 + i + 1,
-        title: `${PRAYER_RU[k]} · ${at.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}`,
-        body: `Время намаза ${PRAYER_RU[k]} — ${city}`,
+        // одна строка: «Магриб · 18:50 — Киев»
+        title: `${PRAYER_RU[k]} · ${at.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })} — ${city}`,
+        body: '',
         schedule: { at, allowWhileIdle: true },
         sound: 'default',
       });
