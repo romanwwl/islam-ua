@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { CITIES, METHODS, PRAYER_KEYS, PRAYER_RU, DEFAULT_STATE, timesFor, coordsFor, jumuahFor, isFriday, fmtTime, hijri } from '../lib/prayer.js';
   import { load, save } from '../lib/storage.js';
+  import { isNative, NOTIFY_PRAYERS, DEFAULT_NOTIFY, ensurePermission, reschedule } from '../lib/notify.js';
 
   let { active = false } = $props();
 
@@ -12,6 +13,22 @@
   let today = $state(null);
   let tomorrow = $state(null);
   let geoBusy = $state(false);
+
+  /* Уведомления */
+  const NKEY = 'islamua_notify';
+  let nt = $state(load(NKEY, DEFAULT_NOTIFY));
+  let notifyDenied = $state(false);
+  function syncNotify() { save(NKEY, nt); reschedule(st, nt); }
+  async function toggleNotify() {
+    if (!nt.on) {
+      const ok = await ensurePermission();
+      if (!ok) { notifyDenied = true; return; }
+      notifyDenied = false;
+    }
+    nt.on = !nt.on;
+    syncNotify();
+  }
+  function togglePrayer(k) { nt.prayers[k] = !nt.prayers[k]; syncNotify(); }
 
   const coords = $derived(coordsFor(st));
   const jumuah = $derived(jumuahFor(st));
@@ -59,7 +76,7 @@
     now = n;
   }
 
-  function persist() { save(KEY, st); }
+  function persist() { save(KEY, st); if (nt.on) reschedule(st, nt); }
 
   function askGeo() {
     const fallback = () => { st.city = '0'; geoBusy = false; persist(); compute(); };
@@ -78,7 +95,11 @@
   onMount(() => {
     if (st.city === 'geo' && !st.geo) askGeo(); else compute();
     const t = setInterval(tick, 1000);
-    return () => clearInterval(t);
+    // при каждом открытии приложения перепланировать уведомления на неделю вперёд
+    if (nt.on) reschedule(st, nt);
+    const onVis = () => { if (document.visibilityState === 'visible') { tick(); if (nt.on) reschedule(st, nt); } };
+    document.addEventListener('visibilitychange', onVis);
+    return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis); };
   });
 
   // при возврате на экран пересчитать (день мог смениться, пока экран был скрыт)
@@ -123,6 +144,25 @@
       <option value="2">Аср: ханафи</option>
     </select>
   </div>
+
+  {#if isNative}
+    <div class="pnotify">
+      <label class="toggle nrow">
+        <input type="checkbox" checked={nt.on} onchange={toggleNotify}>
+        <span class="nlbl"><b>Уведомления о намазе</b><small>Напоминание в момент наступления времени</small></span>
+      </label>
+      {#if nt.on}
+        <div class="nchips">
+          {#each NOTIFY_PRAYERS as k}
+            <button class="chip" class:on={nt.prayers[k]} onclick={() => togglePrayer(k)}>{PRAYER_RU[k]}</button>
+          {/each}
+        </div>
+      {/if}
+      {#if notifyDenied}
+        <div class="nwarn">Уведомления запрещены. Разрешите их: Настройки iPhone → Islam UA → Уведомления.</div>
+      {/if}
+    </div>
+  {/if}
 
   <div class="pnote">
     {#if st.method === 'amu'}
