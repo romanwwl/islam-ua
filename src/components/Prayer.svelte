@@ -102,7 +102,7 @@
 
   <div class="prow">
     {#each PRAYER_KEYS as k}
-      <div class="pcell" class:cur={status.cur === k} class:next={status.next === k}>
+      <div class="pcell" class:cur={status.cur === k} class:upcoming={status.next === k}>
         <div class="ic {k}"></div>
         <div class="nm">{PRAYER_RU[k]}</div>
         <div class="tm">{today ? fmtTime(today[k]) : '--:--'}</div>

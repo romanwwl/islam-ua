@@ -127,7 +127,10 @@ h1{ font-size:17px; font-weight:700; letter-spacing:1.2px; }
 .pcell .nm{ font-size:11px; color:var(--muted); margin-bottom:4px; }
 .pcell .tm{ font-size:14px; font-weight:700; padding:4px 2px; border-radius:8px; }
 .pcell.cur .tm{ background:#ffffff1f; }
-.pcell.next .nm{ color:var(--gold); font-weight:600; }
+/* Следующий намаз — жёлтая карточка, текст тёмный */
+.pcell.upcoming{ background:linear-gradient(180deg,var(--gold),var(--gold-soft)); border-radius:12px; padding:12px 2px; box-shadow:0 8px 20px -10px var(--gold); }
+.pcell.upcoming .nm{ color:#0f2036; font-weight:600; }
+.pcell.upcoming .tm{ color:#0f2036; }
 .ic.fajr{ background:radial-gradient(circle at 35% 30%, #b98cff, #4a1d9c); }
 .ic.sunrise{ background:radial-gradient(circle at 35% 30%, #6fbaff, #0c4bb0); }
 .ic.dhuhr{ background:radial-gradient(circle at 35% 30%, #fff3a8, #f3b400); }
