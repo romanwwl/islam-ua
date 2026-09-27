@@ -12,7 +12,7 @@ export const MODES = {
   dict:     { title: 'Словарь',      data: WORDS,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30 },
   sira:     { title: 'Сира',         data: SIRA,    prompt: 'Выберите правильный ответ', label: x => (x.ans !== undefined ? x.ans : x.a[0]), round: 30 },
   surah:    { title: 'Суры',         data: SURAHS,  prompt: 'Как называется эта сура?',  label: s => s.lb },
-  // Слова Корана: по порядку частотности, раундами по 30; варианты ответа — той же категории (частица/имя/глагол)
+  // Слова Корана (только значимые: имена и глаголы) по порядку частотности, раундами по 30; варианты ответа — той же категории
   quran:    { title: 'Коран',        data: QURAN,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30, ordered: true, sameCat: true },
 };
 export const MODE_KEYS = Object.keys(MODES);
