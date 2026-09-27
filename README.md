@@ -110,8 +110,9 @@ App Store Connect → Islam UA → **Распространение** → вер
 ## Как выпускать обновления
 
 1. Правки в `src/` (код) или `src/data/` (контент) → Commit → Push в `main`.
-2. Хочешь новую версию в сторе — в `ios/App/App.xcodeproj/project.pbxproj` замени обе строки `MARKETING_VERSION = 1.1;` на `1.2` и т.д. (build number Codemagic увеличивает сам).
-3. Codemagic → Start new build → билд в TestFlight → в App Store Connect «+» новая версия → выбрать билд → отправить.
+2. Новая версия в сторе — в `ios/App/App.xcodeproj/project.pbxproj` замени обе строки `MARKETING_VERSION = 1.1;` на `1.2` и т.д. (build number Codemagic увеличивает сам).
+3. Поставь тег `v1.2.0` и запушь его — Codemagic соберёт билд сам и отправит в TestFlight (или вручную: Codemagic → Start new build).
+4. App Store Connect → «+» новая версия → выбрать билд → отправить на проверку.
 
 ## Если что-то пошло не так
 

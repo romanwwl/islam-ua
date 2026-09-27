@@ -1,6 +1,5 @@
 <script>
-  import { MODES, MODE_KEYS, NONCONNECT, displayForm, letterForms, highlightWord, ayatWord, buildDeck, buildOptions, resultMessage, roundCount, surahName } from '../lib/quiz.js';
-  import { load, save } from '../lib/storage.js';
+  import { MODES, MODE_KEYS, NONCONNECT, displayForm, letterForms, highlightWord, ayatWord, buildDeck, buildOptions, resultMessage, surahName } from '../lib/quiz.js';
 
   let { active = false } = $props();
 
@@ -17,11 +16,6 @@
   let hintOpen = $state(false);
   let playing = $state(false);
   let nextBtn = $state(null), restartBtn = $state(null);
-  // Упорядоченные режимы (Коран): номер текущего раунда, запоминается между сессиями
-  const ROUNDS_KEY = 'islamua_rounds';
-  let rounds = $state(load(ROUNDS_KEY, {}));
-  const roundIdx = $derived(cfg.ordered ? Math.min(rounds[mode] || 0, roundCount(mode) - 1) : 0);
-  const roundsTotal = $derived(roundCount(mode));
 
   const cfg = $derived(MODES[mode]);
   const label = item => MODES[mode].label(item);
@@ -34,7 +28,7 @@
   const glyph = $derived(current && mode === 'alphabet' ? displayForm(current.c, formsMode) : '');
 
   function start() {
-    deck = buildDeck(mode, roundIdx);
+    deck = buildDeck(mode);
     pos = -1; score = 0; total = 0; streak = 0;
     finished = false;
     next();
@@ -60,13 +54,6 @@
     mode = m;
     start();
   }
-
-  function goRound(i) {
-    rounds = { ...rounds, [mode]: i };
-    save(ROUNDS_KEY, rounds);
-    start();
-  }
-  function nextRound() { goRound((roundIdx + 1) % roundsTotal); }
 
   const refLabel = w => {
     const [s, a] = w.ref.split(':');
@@ -95,7 +82,7 @@
   /* ---- Клавиатура (для веб-версии) ---- */
   function onKey(e) {
     if (!active) return;
-    if (finished) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); cfg.ordered ? nextRound() : start(); } return; }
+    if (finished) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); start(); } return; }
     if (!answered && ['1', '2', '3', '4'].includes(e.key)) {
       const o = options[+e.key - 1]; if (o) choose(o);
     } else if (answered && (e.key === 'Enter' || e.key === ' ')) {
@@ -114,7 +101,7 @@
   {/each}
 </div>
 
-<div class="counter">{finished ? deck.length : pos + 1} / {deck.length}{#if cfg.ordered}&nbsp;· раунд {roundIdx + 1} из {roundsTotal}{/if}</div>
+<div class="counter">{finished ? deck.length : pos + 1} / {deck.length}</div>
 <div class="bar"><i style="width:{progress}%"></i></div>
 
 {#if !finished && current}
@@ -238,17 +225,9 @@
   </div>
 {:else if finished}
   <div class="result">
-    {#if cfg.ordered}<div class="rround">Раунд {roundIdx + 1} из {roundsTotal}</div>{/if}
     <div class="rbig">{pct}%</div>
     <div class="rmsg">{resultMessage(pct)}</div>
     <div class="rline">Верно {score} из {deck.length}</div>
-    {#if cfg.ordered}
-      <div class="rbtns">
-        <button class="next restart" bind:this={restartBtn} onclick={nextRound}>{roundIdx + 1 < roundsTotal ? 'Следующий раунд →' : 'Начать с первого раунда'}</button>
-        <button class="next ghost" onclick={start}>Пройти этот раунд заново</button>
-      </div>
-    {:else}
-      <button class="next restart" bind:this={restartBtn} onclick={start}>Пройти заново</button>
-    {/if}
+    <button class="next restart" bind:this={restartBtn} onclick={start}>Пройти заново</button>
   </div>
 {/if}

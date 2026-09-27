@@ -104,10 +104,6 @@ h1{ font-size:17px; font-weight:700; letter-spacing:1.2px; }
 .example .ex-ref{ color:var(--gold-soft); font-size:12px; margin-top:6px; letter-spacing:.2px; }
 .freq{ display:inline-block; margin-top:2px; font-size:13px; color:var(--muted); }
 .freq b{ color:var(--gold); font-weight:600; }
-.result .rround{ color:var(--gold-soft); font-size:12px; letter-spacing:.6px; text-transform:uppercase; font-weight:600; margin-bottom:10px; }
-.result .rbtns{ display:flex; flex-direction:column; gap:10px; align-items:center; margin-top:26px; }
-.result .rbtns .next{ margin:0; }
-.result .rbtns .ghost{ background:transparent; color:var(--muted); box-shadow:none; border:1px solid var(--line); font-size:14px; padding:11px 22px; }
 
 .controls{ display:flex; align-items:center; margin-top:16px; gap:12px; min-height:44px; }
 .toggle{ display:flex; align-items:center; gap:9px; font-size:13px; color:var(--muted); cursor:pointer; user-select:none; }

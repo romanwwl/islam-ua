@@ -12,8 +12,8 @@ export const MODES = {
   dict:     { title: 'Словарь',      data: WORDS,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30 },
   sira:     { title: 'Сира',         data: SIRA,    prompt: 'Выберите правильный ответ', label: x => (x.ans !== undefined ? x.ans : x.a[0]), round: 30 },
   surah:    { title: 'Суры',         data: SURAHS,  prompt: 'Как называется эта сура?',  label: s => s.lb },
-  // Слова Корана (только значимые: имена и глаголы) по порядку частотности, раундами по 30; варианты ответа — той же категории
-  quran:    { title: 'Коран',        data: QURAN,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30, ordered: true, sameCat: true },
+  // Слова Корана (только значимые: имена и глаголы): 30 случайных за раунд; варианты ответа — той же категории (имя/глагол)
+  quran:    { title: 'Коран',        data: QURAN,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30, sameCat: true },
 };
 export const MODE_KEYS = Object.keys(MODES);
 
@@ -68,19 +68,9 @@ export function ayatWord(n) {
   return 'аятов';
 }
 
-/* Сколько раундов в упорядоченном режиме */
-export function roundCount(mode) {
+/* Колода на одно прохождение */
+export function buildDeck(mode) {
   const cfg = MODES[mode];
-  return cfg.ordered ? Math.ceil(cfg.data.length / cfg.round) : 1;
-}
-
-/* Колода на одно прохождение. roundIdx — номер раунда (с 0) для упорядоченных режимов */
-export function buildDeck(mode, roundIdx = 0) {
-  const cfg = MODES[mode];
-  if (cfg.ordered) {
-    const from = roundIdx * cfg.round;
-    return shuffle(cfg.data.slice(from, from + cfg.round));
-  }
   let d = shuffle([...cfg.data]);
   if (cfg.round) d = d.slice(0, Math.min(cfg.round, d.length));
   return d;
