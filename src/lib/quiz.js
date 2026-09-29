@@ -5,17 +5,21 @@ import SIRA from '../data/sira.json';
 import SURAHS from '../data/surahs.json';
 import QURAN from '../data/quran.json';
 
-/* Режимы тестов. round — сколько вопросов в одном прохождении (иначе все). */
+import { pickDeck, modeStats } from './progress.js';
+
+/* Режимы тестов. round — сколько вопросов в одном прохождении (иначе все); id — стабильный ключ элемента для прогресса;
+   glyph — символ на карточке раздела; unit — что считаем («выучено» или «верно»). */
 export const MODES = {
-  alphabet: { title: 'Алфавит',      data: LETTERS, prompt: 'Какая это буква?',          label: l => l.name },
-  names:    { title: 'Имена Аллаха', data: NAMES,   prompt: 'Что означает это имя?',     label: n => n.tr },
-  dict:     { title: 'Словарь',      data: WORDS,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30 },
-  sira:     { title: 'Сира',         data: SIRA,    prompt: 'Выберите правильный ответ', label: x => (x.ans !== undefined ? x.ans : x.a[0]), round: 30 },
-  surah:    { title: 'Суры',         data: SURAHS,  prompt: 'Как называется эта сура?',  label: s => s.lb },
-  // Слова Корана (только значимые: имена и глаголы): 30 случайных за раунд; варианты ответа — той же категории (имя/глагол)
-  quran:    { title: 'Коран',        data: QURAN,   prompt: 'Что означает это слово?',   label: w => w.tr, round: 30, sameCat: true },
+  alphabet: { title: 'Алфавит',      data: LETTERS, label: l => l.name, id: l => l.c,  glyph: 'ب',      round: 28 },
+  names:    { title: 'Имена Аллаха', data: NAMES,   label: n => n.tr,   id: n => n.ar, glyph: 'الله',   round: 30 },
+  dict:     { title: 'Словарь',      data: WORDS,   label: w => w.tr,   id: w => w.ar, glyph: 'بَيْت',  round: 30 },
+  quran:    { title: 'Коран',        data: QURAN,   label: w => w.tr,   id: w => w.ar, glyph: 'قُرْآن', round: 30, sameCat: true },
+  sira:     { title: 'Сира',         data: SIRA,    label: x => (x.ans !== undefined ? x.ans : x.a[0]), id: x => x.q, glyph: 'سِيرَة', round: 30 },
+  surah:    { title: 'Суры',         data: SURAHS,  label: s => s.lb,   id: s => String(s.n), glyph: '114', latin: true, round: 30 },
 };
 export const MODE_KEYS = Object.keys(MODES);
+export const idsOf = mode => MODES[mode].data.map(MODES[mode].id);
+export const statsOf = mode => modeStats(mode, idsOf(mode));
 
 /* Буквы, которые соединяются только справа */
 export const NONCONNECT = new Set(['ا', 'د', 'ذ', 'ر', 'ز', 'و']);
@@ -68,12 +72,10 @@ export function ayatWord(n) {
   return 'аятов';
 }
 
-/* Колода на одно прохождение */
+/* Колода на одно прохождение: [{mode, item}] — сначала то, что ждёт повтора, потом новое */
 export function buildDeck(mode) {
   const cfg = MODES[mode];
-  let d = shuffle([...cfg.data]);
-  if (cfg.round) d = d.slice(0, Math.min(cfg.round, d.length));
-  return d;
+  return pickDeck(mode, cfg.data, cfg.id, cfg.round).map(item => ({ mode, item }));
 }
 
 /* Название суры по номеру (для примеров из Корана) */

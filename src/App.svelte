@@ -1,25 +1,40 @@
 <script>
-  import Tests from './components/Tests.svelte';
+  import { fly } from 'svelte/transition';
+  import { untrack } from 'svelte';
   import Prayer from './components/Prayer.svelte';
-  import logo from '/logo.png?url';
+  import Learn from './components/Learn.svelte';
+  import Profile from './components/Profile.svelte';
+  import TabBar from './components/TabBar.svelte';
+  import { load, save } from './lib/storage.js';
 
-  let section = $state('prayer');
+  const TABS = ['prayer', 'learn', 'profile'];
+  let tab = $state(load('islamua_tab', { tab: 'prayer' }).tab);
+  let prev = $state(untrack(() => tab));
+  let quizOpen = $state(false); // во время теста нижняя панель скрыта
+
+  function go(t) {
+    if (t === tab) return;
+    prev = tab; tab = t;
+    save('islamua_tab', { tab: t });
+  }
+  // направление сдвига: к нажатой вкладке
+  const dir = $derived(TABS.indexOf(tab) >= TABS.indexOf(prev) ? 1 : -1);
 </script>
 
 <div class="app">
-  <header class="hdr">
-    <button class="mbtn" class:active={section === 'prayer'} onclick={() => section = 'prayer'}>Время намаза</button>
-    <div class="brand">
-      <img class="logo" src={logo} alt="ISLAM UA">
-      <h1>ISLAM UA</h1>
+  {#key tab}
+    <div class="screen" in:fly={{ x: 40 * dir, duration: 280, opacity: 0.4 }}>
+      {#if tab === 'prayer'}
+        <Prayer active={true} />
+      {:else if tab === 'learn'}
+        <Learn bind:quizOpen />
+      {:else}
+        <Profile onopen={go} />
+      {/if}
     </div>
-    <button class="mbtn" class:active={section === 'tests'} onclick={() => section = 'tests'}>Тесты</button>
-  </header>
-
-  <div hidden={section !== 'tests'}>
-    <Tests active={section === 'tests'} />
-  </div>
-  <div hidden={section !== 'prayer'}>
-    <Prayer active={section === 'prayer'} />
-  </div>
+  {/key}
 </div>
+
+{#if !quizOpen}
+  <TabBar {tab} onselect={go} />
+{/if}

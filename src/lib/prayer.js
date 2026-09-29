@@ -11,7 +11,7 @@ export { CITIES };
  * Аср +2 мин, Магриб +5 мин. Поправки предварительные — подтверждаются по расписанию мечети.
  */
 export const METHODS = {
-  amu:     { name: 'Мечеть АМУ, Киев (amu.org.ua)', fajr: 15,   isha: 15,   offsets: { asr: 2, maghrib: 5 }, jumuah: '13:30' },
+  amu:     { name: 'Мечеть АМУ (Киев)', fajr: 15,   isha: 15,   offsets: { asr: 2, maghrib: 5 }, jumuah: '13:30' },
   mwl:     { name: 'Лига исламского мира (18° / 17°)', fajr: 18,   isha: 17 },
   diyanet: { name: 'Диянет, Турция (18° / 17°)',       fajr: 18,   isha: 17 },
   isna:    { name: 'ISNA (15° / 15°)',                  fajr: 15,   isha: 15 },

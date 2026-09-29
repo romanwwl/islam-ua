@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import Brand from './Brand.svelte';
   import { CITIES, METHODS, PRAYER_KEYS, PRAYER_RU, DEFAULT_STATE, timesFor, coordsFor, jumuahFor, isFriday, fmtTime, hijri } from '../lib/prayer.js';
   import { load, save } from '../lib/storage.js';
   import { isNative, NOTIFY_PRAYERS, DEFAULT_NOTIFY, ensurePermission, reschedule } from '../lib/notify.js';
@@ -33,6 +34,7 @@
   const coords = $derived(coordsFor(st));
   const jumuah = $derived(jumuahFor(st));
   const friday = $derived(isFriday(now));
+  const methodName = $derived((METHODS[st.method] || METHODS.amu).name.replace(/\s*\(.*\)$/, ''));
 
   /* Порядок событий дня: по пятницам джума встаёт между зухром и асром */
   const sequence = $derived.by(() => {
@@ -48,6 +50,9 @@
     if (next) return { cur, next, at: today[next] };
     return { cur, next: 'fajr', at: tomorrow.fajr };
   });
+  // жёлтое выделение стоит на ячейке следующего намаза (джума — отдельная строка, выделение остаётся на зухре)
+  const highlighted = $derived(status.next === 'jumuah' ? 'dhuhr' : status.next);
+  const sliderIdx = $derived(Math.max(0, PRAYER_KEYS.indexOf(highlighted)));
 
   const countdown = $derived.by(() => {
     if (!status.at) return '--:--:--';
@@ -56,10 +61,8 @@
     return hh + ':' + String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
   });
 
-  const dateLine = $derived.by(() => {
-    const h = hijri(now);
-    return now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }) + (h ? ' · ' + h : '');
-  });
+  const dateLine = $derived(now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }));
+  const hijriLine = $derived(hijri(now));
 
   function compute() {
     const n = new Date();
@@ -69,13 +72,11 @@
     dayKey = n.toDateString();
     now = n;
   }
-
   function tick() {
     const n = new Date();
     if (n.toDateString() !== dayKey) { compute(); return; }
     now = n;
   }
-
   function persist() { save(KEY, st); if (nt.on) reschedule(st, nt); }
 
   function askGeo() {
@@ -87,7 +88,6 @@
       fallback, { timeout: 8000 }
     );
   }
-
   function onCity() { persist(); if (st.city === 'geo') askGeo(); else compute(); }
   function onMethod() { persist(); compute(); }
   function onAsr() { persist(); compute(); }
@@ -95,80 +95,86 @@
   onMount(() => {
     if (st.city === 'geo' && !st.geo) askGeo(); else compute();
     const t = setInterval(tick, 1000);
-    // при каждом открытии приложения перепланировать уведомления на неделю вперёд
     if (nt.on) reschedule(st, nt);
     const onVis = () => { if (document.visibilityState === 'visible') { tick(); if (nt.on) reschedule(st, nt); } };
     document.addEventListener('visibilitychange', onVis);
     return () => { clearInterval(t); document.removeEventListener('visibilitychange', onVis); };
   });
-
-  // при возврате на экран пересчитать (день мог смениться, пока экран был скрыт)
   $effect(() => { if (active && today) tick(); });
 </script>
 
-<div class="prayer">
-  <div class="ptop">
-    <div class="pnext"><small>Следующий намаз</small><span>{PRAYER_RU[status.next]}</span> · <span>{countdown}</span></div>
-    <div class="pmoon">☾</div>
-  </div>
+<Brand subtitle={`${coords.name} · ${st.method === 'amu' ? 'мечеть АМУ' : methodName}`} />
 
-  <div class="prow">
-    {#each PRAYER_KEYS as k}
-      <div class="pcell" class:cur={status.cur === k} class:upcoming={status.next === k}>
-        <div class="ic {k}"></div>
-        <div class="nm">{PRAYER_RU[k]}</div>
-        <div class="tm">{today ? fmtTime(today[k]) : '--:--'}</div>
+<div class="pnext">
+  <div><small>Следующий намаз</small><b>{PRAYER_RU[status.next]} · {countdown}</b></div>
+  <div class="date">{dateLine}{#if hijriLine}<br>{hijriLine}{/if}</div>
+</div>
+
+<div class="prow">
+  <div class="slider" style="left: calc(6px + {sliderIdx} * ((100% - 12px - 20px) / 6 + 4px))"></div>
+  {#each PRAYER_KEYS as k}
+    <div class="pcell" class:cur={status.cur === k} class:upcoming={highlighted === k}>
+      <div class="ic {k}"></div>
+      <div class="nm">{PRAYER_RU[k]}</div>
+      <div class="tm">{today ? fmtTime(today[k]) : '--:--'}</div>
+    </div>
+  {/each}
+</div>
+
+{#if jumuah}
+  <div class="pjumua" class:today={friday}>
+    <div class="jn"><b>Джума</b> · пятничная молитва{friday ? ' · сегодня' : ''}</div>
+    <div class="jt">{jumuah}</div>
+  </div>
+{/if}
+
+{#if isNative}
+  <div class="sec">Уведомления</div>
+  <div class="list">
+    <label class="li toggle">
+      <span>Уведомления о намазе</span>
+      <input type="checkbox" checked={nt.on} onchange={toggleNotify}>
+    </label>
+    {#if nt.on}
+      <div class="chips">
+        {#each NOTIFY_PRAYERS as k}
+          <button class="chip" class:on={nt.prayers[k]} onclick={() => togglePrayer(k)}>{PRAYER_RU[k]}</button>
+        {/each}
       </div>
-    {/each}
-  </div>
-
-  {#if jumuah}
-    <div class="pjumua" class:today={friday}>
-      <div class="jn"><b>Джума</b> · пятничная молитва{friday ? ' · сегодня' : ''}</div>
-      <div class="jt">{jumuah}</div>
-    </div>
-  {/if}
-
-  <div class="pfoot"><span>{dateLine}</span><span>{geoBusy ? 'Определяем…' : coords.name}</span></div>
-
-  <div class="psettings">
-    <select class="full" bind:value={st.city} onchange={onCity}>
-      <option value="geo">Моё местоположение (GPS)</option>
-      {#each CITIES as c, i}<option value={String(i)}>{c.name}</option>{/each}
-    </select>
-    <select class="full" bind:value={st.method} onchange={onMethod}>
-      {#each Object.entries(METHODS) as [k, m]}<option value={k}>{m.name}</option>{/each}
-    </select>
-    <select class="full" bind:value={st.asr} onchange={onAsr}>
-      <option value="1">Аср: стандарт</option>
-      <option value="2">Аср: ханафи</option>
-    </select>
-  </div>
-
-  {#if isNative}
-    <div class="pnotify">
-      <label class="toggle nrow">
-        <input type="checkbox" checked={nt.on} onchange={toggleNotify}>
-        <span class="nlbl"><b>Уведомления о намазе</b><small>Напоминание в момент наступления времени</small></span>
-      </label>
-      {#if nt.on}
-        <div class="nchips">
-          {#each NOTIFY_PRAYERS as k}
-            <button class="chip" class:on={nt.prayers[k]} onclick={() => togglePrayer(k)}>{PRAYER_RU[k]}</button>
-          {/each}
-        </div>
-      {/if}
-      {#if notifyDenied}
-        <div class="nwarn">Уведомления запрещены. Разрешите их: Настройки iPhone → Islam UA → Уведомления.</div>
-      {/if}
-    </div>
-  {/if}
-
-  <div class="pnote">
-    {#if st.method === 'amu'}
-      Расписание мечети Асоціації мусульман України (Киев, Нивки): метод ISNA с поправками мечети, джума в 13:30. Для другой мечети выберите её метод расчёта.
-    {:else}
-      Времена рассчитываются астрономически для выбранного города и обновляются автоматически каждый день. Для точного соответствия расписанию вашей мечети выберите её метод расчёта.
     {/if}
   </div>
+  {#if notifyDenied}
+    <div class="warn">Уведомления запрещены. Разрешите их: Настройки iPhone → Islam UA → Уведомления.</div>
+  {/if}
+{/if}
+
+<div class="sec">Расчёт</div>
+<div class="list">
+  <label class="li">
+    <span>Город</span>
+    <select bind:value={st.city} onchange={onCity}>
+      <option value="geo">Моё местоположение</option>
+      {#each CITIES as c, i}<option value={String(i)}>{c.name}</option>{/each}
+    </select>
+  </label>
+  <label class="li">
+    <span>Метод</span>
+    <select bind:value={st.method} onchange={onMethod}>
+      {#each Object.entries(METHODS) as [k, m]}<option value={k}>{m.name}</option>{/each}
+    </select>
+  </label>
+  <label class="li">
+    <span>Аср</span>
+    <select bind:value={st.asr} onchange={onAsr}>
+      <option value="1">Стандарт</option>
+      <option value="2">Ханафи</option>
+    </select>
+  </label>
+</div>
+<div class="note">
+  {#if st.method === 'amu'}
+    Расписание мечети Асоціації мусульман України (Киев, Нивки): метод ISNA с поправками мечети, джума в 13:30. Для другой мечети выберите её метод расчёта.
+  {:else}
+    Времена рассчитываются астрономически для выбранного города{geoBusy ? ' (определяем местоположение…)' : ''} и обновляются каждый день. Для точного соответствия расписанию вашей мечети выберите её метод расчёта.
+  {/if}
 </div>
