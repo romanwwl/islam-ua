@@ -2,8 +2,8 @@
   import { fly, fade } from 'svelte/transition';
   import Brand from './Brand.svelte';
   import Quiz from './Quiz.svelte';
-  import { MODES, MODE_KEYS, statsOf, buildDeck } from '../lib/quiz.js';
-  import { dueAcross, streakDays, getName } from '../lib/progress.js';
+  import { MODES, MODE_KEYS, statsOf, buildDeck, pendingSession, restoreSession } from '../lib/quiz.js';
+  import { dueAcross, getName } from '../lib/progress.js';
 
   let { quizOpen = $bindable(false) } = $props();
 
@@ -11,7 +11,6 @@
   let tick = $state(0);         // пересчёт статистики после теста
 
   const name = $derived((tick, getName()));
-  const streak = $derived((tick, streakDays()));
   const stats = $derived.by(() => { tick; const o = {}; for (const m of MODE_KEYS) o[m] = statsOf(m); return o; });
 
   // повторение на сегодня — всё, что ждёт повтора, из всех разделов
@@ -26,11 +25,16 @@
     return parts.join(', ');
   });
 
+  const pending = $derived.by(() => { tick; const o = {}; for (const m of [...MODE_KEYS, 'review']) o[m] = pendingSession(m); return o; });
+
   function open(mode) {
-    session = { title: MODES[mode].title, mode, deck: buildDeck(mode) };
+    const r = restoreSession(mode);
+    session = r ? { ...r.session, resume: r.state } : { title: MODES[mode].title, mode, deck: buildDeck(mode) };
     quizOpen = true;
   }
   function openReview() {
+    const r = restoreSession('review');
+    if (r) { session = { ...r.session, resume: r.state }; quizOpen = true; return; }
     const shuffled = [...due].sort(() => Math.random() - 0.5).slice(0, 30);
     session = { title: 'Повторение', mode: null, deck: shuffled };
     quizOpen = true;
@@ -49,10 +53,14 @@
 
     <div class="hello">
       <b>{name ? `Ассаляму алейкум, ${name}` : 'Ассаляму алейкум'}</b>
-      <span class="streak">🔥 {streak} {streak % 10 === 1 && streak % 100 !== 11 ? 'день' : (streak % 10 >= 2 && streak % 10 <= 4 && (streak % 100 < 10 || streak % 100 >= 20) ? 'дня' : 'дней')}</span>
     </div>
 
-    {#if due.length}
+    {#if pending.review}
+      <div class="todaycard">
+        <div><b>Повторение не закончено</b><small>Вопрос {pending.review.pos + 1} из {pending.review.total}</small></div>
+        <button class="btn" onclick={openReview}>Продолжить</button>
+      </div>
+    {:else if due.length}
       <div class="todaycard">
         <div><b>Повторение на сегодня</b><small>{due.length} {due.length === 1 ? 'элемент' : 'элементов'}: {dueText}</small></div>
         <button class="btn" onclick={openReview}>Начать</button>
@@ -71,7 +79,8 @@
           <b>{MODES[m].title}</b>
           <small>{unit(m)} {s.learned} из {s.total}</small>
           <div class="bar"><i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i></div>
-          {#if s.due}<span class="due">{s.due}</span>{/if}
+          {#if pending[m]}<span class="cont">Продолжить · {pending[m].pos + 1}/{pending[m].total}</span>
+          {:else if s.due}<span class="due">{s.due}</span>{/if}
         </button>
       {/each}
     </div>

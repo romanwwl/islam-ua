@@ -1,16 +1,17 @@
 <script>
-  import { MODES, NONCONNECT, displayForm, letterForms, highlightWord, ayatWord, buildOptions, buildDeck, resultMessage, surahName } from '../lib/quiz.js';
+  import { MODES, NONCONNECT, displayForm, letterForms, highlightWord, ayatWord, buildOptions, buildDeck, resultMessage, surahName, saveSession, clearSession } from '../lib/quiz.js';
   import { untrack } from 'svelte';
   import { record } from '../lib/progress.js';
 
   let { session, onclose, onanswer } = $props();
 
   // eslint-disable-next-line svelte/valid-compile
-  let deck = $state(untrack(() => session.deck));   // [{mode, item}]
-  let pos = $state(0);
-  let optsCache = $state([]);
-  let answers = $state([]);
-  let hints = $state([]);
+  const init = untrack(() => session.resume || null);   // восстановленная сессия, если есть
+  let deck = $state(untrack(() => init ? init.deck : session.deck));   // [{mode, item}]
+  let pos = $state(init ? init.pos : 0);
+  let optsCache = $state(init ? init.optsCache : []);
+  let answers = $state(init ? init.answers : []);
+  let hints = $state(init ? init.hints : []);
   let finished = $state(false);
   let formsMode = $state(false);
   let playing = $state(false);
@@ -38,13 +39,18 @@
   const cardState = $derived(!answered ? '' : (label(mode, chosen) === correctLabel ? 'correct' : 'wrong'));
   const glyph = $derived(current && mode === 'alphabet' ? displayForm(current.c, formsMode) : '');
 
+  function persist() {
+    if (finished) { clearSession(session); return; }
+    saveSession(session, { deck, optsCache, answers, hints, pos });
+  }
   function goTo(i) {
     pos = i;
     if (!optsCache[i]) optsCache[i] = buildOptions(deck[i].mode, deck[i].item);
+    persist();
   }
   function next() {
     if (pos + 1 >= deck.length) {
-      if (allAnswered) { finished = true; queueMicrotask(() => restartBtn?.focus()); }
+      if (allAnswered) { finished = true; clearSession(session); queueMicrotask(() => restartBtn?.focus()); }
       return;
     }
     goTo(pos + 1);
@@ -60,12 +66,15 @@
     deck = session.mode ? buildDeck(session.mode) : [...deck].sort(() => Math.random() - 0.5);
     reset();
   }
-  function reset() { optsCache = []; answers = []; hints = []; finished = false; goTo(0); }
+  function reset() { optsCache = []; answers = []; hints = []; finished = false; clearSession(session); goTo(0); }
+  // начать этот раздел заново (новая колода)
+  function startOver() { deck = session.mode ? buildDeck(session.mode) : [...deck].sort(() => Math.random() - 0.5); reset(); }
   function choose(opt) {
     if (answered) return;
     answers[pos] = opt;
     const ok = label(mode, opt) === correctLabel;
     record(mode, cfg.id(current), ok);
+    persist();
     onanswer?.();
     queueMicrotask(() => nextBtn?.focus());
   }
@@ -95,7 +104,7 @@
     else if (answered && (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight')) { e.preventDefault(); next(); }
   }
 
-  goTo(0);
+  goTo(init ? init.pos : 0);
 </script>
 
 <svelte:window onkeydown={onKey} />
@@ -139,7 +148,7 @@
       {#if hintOpen}
         <div class="hint-box">{current.t} сура · {current.ay} {ayatWord(current.ay)} · {current.hint}</div>
       {:else if !answered}
-        <button class="hint-btn" onclick={() => hints[pos] = true}>Подсказка</button>
+        <button class="hint-btn" onclick={() => { hints[pos] = true; persist(); }}>Подсказка</button>
       {/if}
     {/if}
   </div>
@@ -213,11 +222,12 @@
     <div class="stat"><b class:hot={streak >= 5}>{streak}</b><span>серия</span></div>
   </div>
 
-  {#if mode === 'alphabet'}
-    <div class="controls">
+  <div class="controls">
+    {#if mode === 'alphabet'}
       <label class="toggle"><input type="checkbox" bind:checked={formsMode}> Разные формы букв</label>
-    </div>
-  {/if}
+    {/if}
+    <button class="linkbtn" onclick={startOver}>Начать заново</button>
+  </div>
 {:else if finished}
   <div class="result">
     <div class="rbig">{pct}%</div>

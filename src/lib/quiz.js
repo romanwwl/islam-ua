@@ -110,3 +110,52 @@ export function resultMessage(pct) {
   if (pct >= 50) return 'Неплохо, продолжай';
   return 'Есть куда расти';
 }
+
+/* ---------- Незавершённая сессия теста: сохраняем, чтобы продолжить с того же вопроса ---------- */
+const SKEY = 'islamua_sessions';
+const readAll = () => { try { return JSON.parse(localStorage.getItem(SKEY) || '{}'); } catch (e) { return {}; } };
+const writeAll = obj => { try { localStorage.setItem(SKEY, JSON.stringify(obj)); } catch (e) { /* ignore */ } };
+const sessionKey = session => session.mode || 'review';
+
+const itemId = (m, it) => (it.ans !== undefined ? it.ans : MODES[m].id(it));
+const findItem = (m, id) => MODES[m].data.find(x => MODES[m].id(x) === id) || null;
+
+export function saveSession(session, state) {
+  const all = readAll();
+  all[sessionKey(session)] = {
+    title: session.title, mode: session.mode, pos: state.pos, hints: state.hints,
+    deck: state.deck.map(e => ({ m: e.mode, id: MODES[e.mode].id(e.item) })),
+    opts: state.deck.map((e, i) => (state.optsCache[i] || []).map(o => itemId(e.mode, o))),
+    answers: state.deck.map((e, i) => (state.answers[i] == null ? null : itemId(e.mode, state.answers[i]))),
+  };
+  writeAll(all);
+}
+export function clearSession(session) { const all = readAll(); delete all[sessionKey(session)]; writeAll(all); }
+
+/* Есть ли незавершённая сессия для раздела (или 'review') — возвращает {pos, total} */
+export function pendingSession(key) {
+  const s = readAll()[key];
+  if (!s) return null;
+  const answered = s.answers.filter(a => a != null).length;
+  if (answered === 0 || answered >= s.deck.length) return null;
+  return { pos: answered, total: s.deck.length };
+}
+
+/* Восстановить сессию: {session, state} или null */
+export function restoreSession(key) {
+  const s = readAll()[key];
+  if (!s) return null;
+  const deck = [];
+  for (const d of s.deck) { const item = findItem(d.m, d.id); if (!item) return null; deck.push({ mode: d.m, item }); }
+  const optsCache = s.opts.map((ids, i) => {
+    const m = deck[i].mode;
+    if (m === 'sira') return ids.map(ans => ({ ans }));
+    return ids.map(id => findItem(m, id)).filter(Boolean);
+  });
+  const answers = s.answers.map((id, i) => {
+    if (id == null) return null;
+    const m = deck[i].mode;
+    return (optsCache[i] || []).find(o => itemId(m, o) === id) ?? null;
+  });
+  return { session: { title: s.title, mode: s.mode, deck }, state: { deck, optsCache, answers, hints: s.hints || [], pos: Math.min(s.pos, deck.length - 1) } };
+}

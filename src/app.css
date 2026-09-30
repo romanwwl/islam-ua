@@ -117,6 +117,9 @@ button, .tab, .mbtn { -webkit-user-select:none; user-select:none; font-family:in
 .tcard b{ display:block; font-size:14px; margin-top:8px; }
 .tcard small{ display:block; color:var(--muted); font-size:11.5px; margin-top:3px; font-variant-numeric:tabular-nums; }
 .tcard .bar{ margin-top:10px; }
+.tcard .cont{ position:absolute; top:11px; right:11px; font-size:10.5px; font-weight:600; color:var(--gold); background:#ffd21e18; border:1px solid #ffd21e44; border-radius:99px; padding:3px 8px; }
+.linkbtn{ margin-left:auto; font-family:inherit; font-size:13px; font-weight:600; color:var(--muted); background:none; border:none; cursor:pointer; padding:6px 0; }
+.linkbtn:active{ color:var(--ink); }
 .tcard .due{ position:absolute; top:11px; right:11px; font-size:11px; font-weight:700; color:var(--gold-ink); background:var(--gold); border-radius:99px; padding:2px 7px; min-width:20px; text-align:center; }
 
 /* ---------- Тест ---------- */
