@@ -49,7 +49,7 @@ export function record(mode, id, correct) {
   persist();
 }
 
-/* Сводка по режиму: всего / выучено / ждут повтора / когда-либо отвечали */
+/* Сводка по режиму: всего / выучено / учится (начато, но ещё не выучено) / ждут повтора / когда-либо отвечали */
 export function modeStats(mode, ids) {
   const now = Date.now();
   let learned = 0, due = 0, seen = 0, ok = 0, n = 0;
@@ -60,7 +60,7 @@ export function modeStats(mode, ids) {
     if (it.days.length >= 3 && it.s >= 3) learned++;
     else if (it.due <= now) due++;
   }
-  return { total: ids.length, learned, due, seen, accuracy: n ? Math.round(ok / n * 100) : null };
+  return { total: ids.length, learned, learning: seen - learned, due, seen, accuracy: n ? Math.round(ok / n * 100) : null };
 }
 
 /* Общая статистика для профиля */

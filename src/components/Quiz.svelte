@@ -45,7 +45,7 @@
   }
   function goTo(i) {
     pos = i;
-    if (!optsCache[i]) optsCache[i] = buildOptions(deck[i].mode, deck[i].item);
+    if (!optsCache[i] || !optsCache[i].length) optsCache[i] = buildOptions(deck[i].mode, deck[i].item);
     persist();
   }
   function next() {

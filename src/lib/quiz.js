@@ -147,10 +147,13 @@ export function restoreSession(key) {
   if (!s) return null;
   const deck = [];
   for (const d of s.deck) { const item = findItem(d.m, d.id); if (!item) return null; deck.push({ mode: d.m, item }); }
+  // варианты восстанавливаем только там, где они были построены; пустые — undefined, чтобы собрать заново
   const optsCache = s.opts.map((ids, i) => {
+    if (!ids || !ids.length) return undefined;
     const m = deck[i].mode;
     if (m === 'sira') return ids.map(ans => ({ ans }));
-    return ids.map(id => findItem(m, id)).filter(Boolean);
+    const o = ids.map(id => findItem(m, id)).filter(Boolean);
+    return o.length ? o : undefined;
   });
   const answers = s.answers.map((id, i) => {
     if (id == null) return null;

@@ -77,12 +77,17 @@
         <button class="tcard" onclick={() => open(m)}>
           <div class="g" class:latin={MODES[m].latin}>{MODES[m].glyph}</div>
           <b>{MODES[m].title}</b>
-          <small>{unit(m)} {s.learned} из {s.total}</small>
-          <div class="bar"><i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i></div>
+          <small>{unit(m)} {s.learned}/{s.total}{s.learning ? ` · учится ${s.learning}` : ''}</small>
+          <div class="bar">
+            <i class="soft" style="width:{s.total ? (s.learned + s.learning) / s.total * 100 : 0}%"></i>
+            <i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i>
+          </div>
           {#if pending[m]}<span class="cont">Продолжить · {pending[m].pos + 1}/{pending[m].total}</span>
           {:else if s.due}<span class="due">{s.due}</span>{/if}
         </button>
       {/each}
     </div>
+
+    <p class="learnnote">Элемент считается выученным, когда вы ответили на него верно в три разных дня. Приложение само подскажет, что повторить, — заходите каждый день.</p>
   </div>
 {/if}

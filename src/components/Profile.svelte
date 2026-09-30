@@ -40,7 +40,7 @@
 <div class="list"><div class="prog">
   {#each MODE_KEYS as m}
     {@const s = statsOf(m)}
-    <div class="pr"><span>{MODES[m].title}</span><div class="bar"><i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i></div><span class="n">{s.learned}/{s.total}</span></div>
+    <div class="pr"><span>{MODES[m].title}</span><div class="bar"><i class="soft" style="width:{s.total ? (s.learned + s.learning) / s.total * 100 : 0}%"></i><i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i></div><span class="n">{s.learned}/{s.total}</span></div>
   {/each}
 </div></div>
 
