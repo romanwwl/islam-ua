@@ -50,6 +50,7 @@
     persist();
   }
   function next() {
+    if (!answered) return;
     if (pos + 1 >= deck.length) {
       if (allAnswered) { finished = true; clearSession(session); queueMicrotask(() => restartBtn?.focus()); }
       return;
@@ -176,9 +177,8 @@
     <button class="iconbtn back" onclick={back} disabled={pos === 0} aria-label="Назад">
       <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
     </button>
-    {#if answered}
-      <button class="next" bind:this={nextBtn} onclick={next}>{pos + 1 >= deck.length ? (allAnswered ? 'Результат →' : 'Дальше →') : 'Дальше →'}</button>
-    {/if}
+    <!-- кнопка всегда в DOM: при удалении WebKit на iOS оставлял «призрак» её тени -->
+    <button class="next" class:hidden={!answered} bind:this={nextBtn} onclick={next} tabindex={answered ? 0 : -1} aria-hidden={!answered}>{pos + 1 >= deck.length ? (allAnswered ? 'Результат →' : 'Дальше →') : 'Дальше →'}</button>
   </div>
 
   {#if answered && mode !== 'dict'}

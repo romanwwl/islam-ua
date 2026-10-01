@@ -192,7 +192,8 @@ button, .tab, .mbtn { -webkit-user-select:none; user-select:none; font-family:in
 .nextrow{ display:grid; grid-template-columns:44px 1fr 44px; align-items:center; gap:10px; margin-top:16px; min-height:46px; }
 .nextrow .back{ width:44px; height:44px; grid-column:1; }
 .nextrow .next{ grid-column:2; justify-self:center; }
-.next{ font-family:inherit; font-size:15px; font-weight:600; color:var(--gold-ink); background:linear-gradient(180deg,var(--gold),var(--gold-soft)); border:none; border-radius:12px; padding:12px 26px; cursor:pointer; box-shadow:0 8px 20px -10px var(--gold); transition:transform .15s var(--ease); animation:rise .3s var(--ease) both; }
+.next{ font-family:inherit; font-size:15px; font-weight:600; color:var(--gold-ink); background:linear-gradient(180deg,var(--gold),var(--gold-soft)); border:none; border-radius:12px; padding:12px 26px; cursor:pointer; box-shadow:0 8px 20px -10px var(--gold); transition:transform .3s var(--ease), opacity .3s var(--ease), box-shadow .3s; }
+.next.hidden{ opacity:0; transform:translateY(10px); box-shadow:none; pointer-events:none; visibility:hidden; transition:none; }
 .next:active{ transform:scale(.97); }
 
 .stats{ display:flex; gap:10px; margin-top:16px; }
