@@ -1,7 +1,7 @@
 <script>
   import { fly } from 'svelte/transition';
   import { untrack } from 'svelte';
-  import Prayer from './components/Prayer.svelte';
+  import Home from './components/Home.svelte';
   import Learn from './components/Learn.svelte';
   import Profile from './components/Profile.svelte';
   import TabBar from './components/TabBar.svelte';
@@ -25,11 +25,11 @@
   {#key tab}
     <div class="screen" in:fly={{ x: 40 * dir, duration: 280, opacity: 0.4 }}>
       {#if tab === 'prayer'}
-        <Prayer active={true} />
+        <Home active={true} onsettings={() => go('profile')} />
       {:else if tab === 'learn'}
         <Learn bind:quizOpen />
       {:else}
-        <Profile onopen={go} />
+        <Profile />
       {/if}
     </div>
   {/key}
