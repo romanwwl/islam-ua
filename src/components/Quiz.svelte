@@ -2,6 +2,7 @@
   import { MODES, NONCONNECT, displayForm, letterForms, highlightWord, ayatWord, buildOptions, buildDeck, resultMessage, surahName, saveSession, clearSession } from '../lib/quiz.js';
   import { untrack } from 'svelte';
   import { record } from '../lib/progress.js';
+  import { hapticCorrect, hapticWrong } from '../lib/haptics.js';
 
   let { session, onclose, onanswer } = $props();
 
@@ -73,6 +74,7 @@
     if (answered) return;
     answers[pos] = opt;
     const ok = label(mode, opt) === correctLabel;
+    if (ok) hapticCorrect(); else hapticWrong();
     record(mode, cfg.id(current), ok);
     persist();
     onanswer?.();
@@ -109,10 +111,7 @@
 
 <svelte:window onkeydown={onKey} />
 
-<div class="qtop">
-  <button class="iconbtn" onclick={back} disabled={pos === 0 || finished} aria-label="Назад">
-    <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
-  </button>
+<div class="qtop noback">
   <div class="qtitle"><b>{session.title}{session.mode === null && entry ? ` · ${MODES[mode].title}` : ''}</b><span>{finished ? deck.length : pos + 1} / {deck.length}</span></div>
   <button class="iconbtn plain" onclick={onclose} aria-label="Закрыть">
     <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -174,6 +173,9 @@
   </div>
 
   <div class="nextrow">
+    <button class="iconbtn back" onclick={back} disabled={pos === 0} aria-label="Назад">
+      <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+    </button>
     {#if answered}
       <button class="next" bind:this={nextBtn} onclick={next}>{pos + 1 >= deck.length ? (allAnswered ? 'Результат →' : 'Дальше →') : 'Дальше →'}</button>
     {/if}

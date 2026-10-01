@@ -126,6 +126,9 @@ button, .tab, .mbtn { -webkit-user-select:none; user-select:none; font-family:in
 
 /* ---------- Тест ---------- */
 .qtop{ display:grid; grid-template-columns:40px 1fr 40px; align-items:center; margin:0 0 10px; }
+.qtop.noback{ grid-template-columns:40px 1fr 40px; }
+.qtop.noback .qtitle{ grid-column:2; }
+.qtop.noback .iconbtn.plain{ grid-column:3; }
 .iconbtn{ width:40px; height:40px; border-radius:13px; border:1px solid var(--line); background:var(--bg2); display:flex; align-items:center; justify-content:center; color:var(--ink); cursor:pointer; transition:transform .15s var(--ease), opacity .2s; }
 .iconbtn svg{ width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
 .iconbtn:active{ transform:scale(.92); }
@@ -186,7 +189,9 @@ button, .tab, .mbtn { -webkit-user-select:none; user-select:none; font-family:in
 .opt.dim{ opacity:.45; }
 @keyframes breathe{ 0%{transform:scale(1)} 40%{transform:scale(1.04)} 100%{transform:scale(1)} }
 
-.nextrow{ display:flex; justify-content:center; margin-top:16px; min-height:46px; }
+.nextrow{ display:grid; grid-template-columns:44px 1fr 44px; align-items:center; gap:10px; margin-top:16px; min-height:46px; }
+.nextrow .back{ width:44px; height:44px; grid-column:1; }
+.nextrow .next{ grid-column:2; justify-self:center; }
 .next{ font-family:inherit; font-size:15px; font-weight:600; color:var(--gold-ink); background:linear-gradient(180deg,var(--gold),var(--gold-soft)); border:none; border-radius:12px; padding:12px 26px; cursor:pointer; box-shadow:0 8px 20px -10px var(--gold); transition:transform .15s var(--ease); animation:rise .3s var(--ease) both; }
 .next:active{ transform:scale(.97); }
 
