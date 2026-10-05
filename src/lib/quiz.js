@@ -4,6 +4,7 @@ import WORDS from '../data/words.json';
 import SIRA from '../data/sira.json';
 import SURAHS from '../data/surahs.json';
 import QURAN from '../data/quran.json';
+import NUMBERS from '../data/numbers.json';
 
 import { pickDeck, modeStats } from './progress.js';
 
@@ -11,7 +12,8 @@ import { pickDeck, modeStats } from './progress.js';
    glyph — символ на карточке раздела; unit — что считаем («выучено» или «верно»). */
 export const MODES = {
   alphabet: { title: 'Алфавит',      data: LETTERS, label: l => l.name, id: l => l.c,  glyph: 'ب',      round: 28 },
-  names:    { title: 'Имена Аллаха', data: NAMES,   label: n => n.tr,   id: n => n.ar, glyph: 'الله',   round: 30 },
+  numbers:  { title: 'Цифры',        data: NUMBERS, label: x => String(x.n), id: x => x.id, glyph: '٧', round: 60, sameCat: true },
+  names:    { title: 'Имена Аллаха', data: NAMES,   label: n => n.tr,   id: n => n.ar, glyph: 'الله',   round: 99, ordered: true },
   dict:     { title: 'Словарь',      data: WORDS,   label: w => w.tr,   id: w => w.ar, glyph: 'بَيْت',  round: 30 },
   quran:    { title: 'Коран',        data: QURAN,   label: w => w.tr,   id: w => w.ar, glyph: 'قُرْآن', round: 30, sameCat: true },
   sira:     { title: 'Сира',         data: SIRA,    label: x => (x.ans !== undefined ? x.ans : x.a[0]), id: x => x.q, glyph: 'سِيرَة', round: 30 },
@@ -75,6 +77,7 @@ export function ayatWord(n) {
 /* Колода на одно прохождение: [{mode, item}] — сначала то, что ждёт повтора, потом новое */
 export function buildDeck(mode) {
   const cfg = MODES[mode];
+  if (cfg.ordered) return cfg.data.map(item => ({ mode, item }));   // все элементы подряд, как в списке
   return pickDeck(mode, cfg.data, cfg.id, cfg.round).map(item => ({ mode, item }));
 }
 

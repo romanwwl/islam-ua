@@ -82,6 +82,18 @@
     queueMicrotask(() => nextBtn?.focus());
   }
 
+  function numNote(x) {
+    const n = x.n;
+    if (x.kind === 'digit' && n >= 10) return 'Многозначные числа пишутся слева направо, как и у нас: ١٢ = 12, ١٠٠ = 100.';
+    if (n === 0) return 'صِفْر — «ноль»; от этого слова происходит и европейское «цифра».';
+    if (n === 1) return 'وَاحِد — мужской род, وَاحِدَة — женский. Стоит после существительного: كِتَابٌ وَاحِدٌ — одна книга.';
+    if (n === 2) return 'اِثْنَان — двойственное число; с женским родом اِثْنَتَان. Чаще просто используется двойственная форма слова: كِتَابَانِ — две книги.';
+    if (n <= 10) return 'Числительные 3–10 с существительными мужского рода имеют ة на конце, с женским — без неё: خَمْسَةُ رِجَالٍ — пять мужчин, خَمْسُ نِسَاءٍ — пять женщин.';
+    if (n < 20) return 'Числительные 11–19 составные: единицы + عَشَرَ, обе части оканчиваются на фатху и не изменяются по падежам.';
+    if (n < 100) return 'Десятки 20–90 оканчиваются на ـُون (в именительном падеже) или ـِين (в косвенных): عِشْرُونَ / عِشْرِينَ.';
+    if (n === 100) return 'مِائَة читается «миа» — алиф в середине не произносится. Двести — مِائَتَان.';
+    return 'أَلْف — тысяча; две тысячи — أَلْفَان, тысячи — آلَاف.';
+  }
   const refLabel = w => { const [s, a] = w.ref.split(':'); return `Сура ${s} «${surahName(+s)}», аят ${a}`; };
   function optClass(o) {
     if (!answered) return '';
@@ -128,6 +140,9 @@
     {:else if mode === 'surah'}
       <div class="glyph num">{current.n}</div>
       <div class="translit">Сура № {current.n} из 114</div>
+    {:else if mode === 'numbers'}
+      <div class="glyph name" class:digits={current.kind === 'digit'}>{current.ar}</div>
+      {#if current.kind === 'word'}<div class="translit">{current.tl}</div>{/if}
     {:else if mode === 'sira'}
       <div class="glyph question">{current.q}</div>
     {:else if mode === 'names'}
@@ -195,6 +210,24 @@
         <div class="rname">{current.ru} · {current.lat}</div>
         <div class="rvars">{current.variants}</div>
         <div class="rbody">{current.info}</div>
+        {#if current.ex}
+          <div class="seclbl">Из Корана</div>
+          <div class="example">
+            <div class="ex-ayah">{current.ex}</div>
+            <div class="ex-tl">{current.exl}</div>
+            <div class="ex-tr">{current.ext}</div>
+            <div class="ex-ref">{refLabel(current)}</div>
+            {#if current.exnote}<div class="ex-note">{current.exnote}</div>{/if}
+          </div>
+        {/if}
+      {:else if mode === 'numbers'}
+        <div class="numrow">
+          <span class="na">{current.kind === 'word' ? current.ar : current.word}</span>
+          <span class="nd">{current.kind === 'digit' ? current.ar : current.digit}</span>
+          <span class="nn">{current.n}</span>
+        </div>
+        <div class="rvars">{current.tl}</div>
+        <div class="rbody">{numNote(current)}</div>
       {:else if mode === 'sira'}
         <div class="rname">Правильный ответ: {current.a[0]}</div>
         <div class="rbody">{current.info}</div>
