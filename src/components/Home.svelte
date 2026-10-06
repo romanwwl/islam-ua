@@ -5,6 +5,7 @@
   import { METHODS, PRAYER_KEYS, PRAYER_RU, timesFor, coordsFor, jumuahFor, isFriday, fmtTime, hijri } from '../lib/prayer.js';
   import { prayer, applyNotify } from '../lib/settings.svelte.js';
   import { ayahOfDay, hadithOfDay, duaOfDay, nameOfDay, refLabel } from '../lib/daily.js';
+  import { playAyah, onAudio, isPlaying } from '../lib/audio.js';
 
   let { active = false, onsettings } = $props();
 
@@ -77,6 +78,11 @@
   });
   $effect(() => { if (active && today) tick(); });
 
+  /* Аудио аята дня */
+  let audioState = $state('idle');
+  onMount(() => onAudio(st => { audioState = st; }));
+  const ayahPlaying = $derived(audioState === 'playing' && ayah && isPlaying(ayah.ref));
+
   const canShare = typeof navigator !== 'undefined' && !!navigator.share;
   async function share(text) {
     try { await navigator.share({ text }); } catch (e) { /* отменено */ }
@@ -118,7 +124,13 @@
 <section class="dcard">
   <header>
     <span class="dlabel"><i class="dot"></i>Аят дня</span>
+    <span class="hbtns">
+    <button class="share play" class:on={ayahPlaying} aria-label="Прослушать" onclick={() => playAyah(ayah.ref)}>
+      {#if ayahPlaying}<svg viewBox="0 0 24 24"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor" stroke="none"/></svg>
+      {:else}<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" fill="currentColor" stroke="none"/></svg>{/if}
+    </button>
     {#if canShare}<button class="share" aria-label="Поделиться" onclick={() => share(`${ayah.ar}\n\n${ayah.ru}\n— Коран, ${refLabel(ayah.ref)}`)}><svg viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5"/></svg></button>{/if}
+    </span>
   </header>
   <div class="d-ar">{ayah.ar}</div>
   <div class="d-tl">{ayah.tl}</div>

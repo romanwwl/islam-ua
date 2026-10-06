@@ -5,6 +5,10 @@ import SIRA from '../data/sira.json';
 import SURAHS from '../data/surahs.json';
 import QURAN from '../data/quran.json';
 import NUMBERS from '../data/numbers.json';
+import AYAT from '../data/ayat.json';
+
+/* Аяты на слух: известные аяты с не слишком длинным переводом (варианты ответа — переводы) */
+const LISTEN = AYAT.filter(a => a.ru.length <= 200);
 
 import { pickDeck, modeStats } from './progress.js';
 
@@ -18,6 +22,7 @@ export const MODES = {
   quran:    { title: 'Коран',        data: QURAN,   label: w => w.tr,   id: w => w.ar, glyph: 'قُرْآن', round: 30, sameCat: true },
   sira:     { title: 'Сира',         data: SIRA,    label: x => (x.ans !== undefined ? x.ans : x.a[0]), id: x => x.q, glyph: 'سِيرَة', round: 30 },
   surah:    { title: 'Суры',         data: SURAHS,  label: s => s.lb,   id: s => String(s.n), glyph: '114', latin: true, round: 30 },
+  listen:   { title: 'На слух',      data: LISTEN,  label: a => a.ru,   id: a => a.ref, glyph: 'سَمَاع', round: 15, single: true },
 };
 export const MODE_KEYS = Object.keys(MODES);
 export const idsOf = mode => MODES[mode].data.map(MODES[mode].id);

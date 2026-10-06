@@ -3,6 +3,9 @@
   import { untrack } from 'svelte';
   import { record } from '../lib/progress.js';
   import { hapticCorrect, hapticWrong } from '../lib/haptics.js';
+  import { refLabel as ayahRefLabel } from '../lib/daily.js';
+  import { playAyah, stopAyah, onAudio, preloadAyah } from '../lib/audio.js';
+  import { onDestroy } from 'svelte';
 
   let { session, onclose, onanswer } = $props();
 
@@ -94,6 +97,22 @@
     if (n === 100) return 'مِائَة читается «миа» — алиф в середине не произносится. Двести — مِائَتَان.';
     return 'أَلْف — тысяча; две тысячи — أَلْفَان, тысячи — آلَاف.';
   }
+  /* ---- Аудио аятов (режим «На слух») ---- */
+  let audioState = $state('idle');   // idle | loading | playing | ended | error
+  let heard = $state({});            // pos → слушал ли (для подсказки «Ещё раз»)
+  const offAudio = onAudio(st => { audioState = st; });
+  onDestroy(() => { offAudio(); stopAyah(); });
+  function playCurrent() {
+    if (mode !== 'listen' || !current) return;
+    heard[pos] = true;
+    playAyah(current.ref);
+  }
+  $effect(() => {
+    // при смене вопроса останавливаем чтение и подгружаем следующий аят
+    pos;
+    if (mode === 'listen') { stopAyah(); audioState = 'idle'; const nx = deck[pos + 1]; if (nx && nx.mode === 'listen') preloadAyah(nx.item.ref); }
+  });
+
   const refLabel = w => { const [s, a] = w.ref.split(':'); return `Сура ${s} «${surahName(+s)}», аят ${a}`; };
   function optClass(o) {
     if (!answered) return '';
@@ -143,6 +162,23 @@
     {:else if mode === 'numbers'}
       <div class="glyph name" class:digits={current.kind === 'digit'}>{current.ar}</div>
       {#if current.kind === 'word'}<div class="translit">{current.tl}</div>{/if}
+    {:else if mode === 'listen'}
+      <button class="playbig" class:playing={audioState === 'playing'} class:loading={audioState === 'loading'} onclick={playCurrent} aria-label="Прослушать аят">
+        {#if audioState === 'playing'}
+          <span class="bars"><i></i><i></i><i></i><i></i></span>
+        {:else if audioState === 'loading'}
+          <span class="spin"></span>
+        {:else}
+          <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        {/if}
+      </button>
+      <div class="translit listen-hint">
+        {#if audioState === 'error'}Не удалось загрузить аудио — проверьте интернет
+        {:else if audioState === 'playing'}Слушайте… нажмите, чтобы остановить
+        {:else if audioState === 'loading'}Загрузка…
+        {:else if heard[pos]}Нажмите, чтобы прослушать ещё раз
+        {:else}Прослушайте аят и выберите его перевод{/if}
+      </div>
     {:else if mode === 'sira'}
       <div class="glyph question">{current.q}</div>
     {:else if mode === 'names'}
@@ -180,7 +216,7 @@
     </div>
   {/if}
 
-  <div class="options" class:single={mode === 'sira' || mode === 'surah'}>
+  <div class="options" class:single={cfg.single || mode === 'sira' || mode === 'surah'} class:text={mode === 'listen'}>
     {#each options as o, i}
       <button class="opt {optClass(o)}" disabled={answered} onclick={() => choose(o)}>
         <span class="num">{i + 1}</span>{label(mode, o)}
@@ -220,6 +256,12 @@
             {#if current.exnote}<div class="ex-note">{current.exnote}</div>{/if}
           </div>
         {/if}
+      {:else if mode === 'listen'}
+        <div class="example">
+          <div class="ex-ayah">{current.ar}</div>
+          <div class="ex-tl">{current.tl}</div>
+          <div class="ex-ref">Коран, {ayahRefLabel(current.ref)} · чтец Мишари аль-Афаси</div>
+        </div>
       {:else if mode === 'numbers'}
         <div class="numrow">
           <span class="na">{current.kind === 'word' ? current.ar : current.word}</span>
