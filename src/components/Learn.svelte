@@ -19,11 +19,6 @@
     const src = {}; for (const m of MODE_KEYS) src[m] = { items: MODES[m].data, idOf: MODES[m].id };
     return dueAcross(src);
   });
-  const dueText = $derived.by(() => {
-    const by = {}; for (const d of due) by[d.mode] = (by[d.mode] || 0) + 1;
-    const parts = Object.entries(by).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([m, n]) => `${n} · ${MODES[m].title}`);
-    return parts.join(', ');
-  });
 
   const pending = $derived.by(() => { tick; const o = {}; for (const m of [...MODE_KEYS, 'review']) o[m] = pendingSession(m); return o; });
 
@@ -56,19 +51,15 @@
     </div>
 
     {#if pending.review}
-      <div class="todaycard">
-        <div><b>Повторение не закончено</b><small>Вопрос {pending.review.pos + 1} из {pending.review.total}</small></div>
-        <button class="btn" onclick={openReview}>Продолжить</button>
-      </div>
+      <button class="reviewrow" onclick={openReview}>
+        <span>Повторение <small>({pending.review.total - pending.review.pos})</small></span>
+        <span class="go">Продолжить</span>
+      </button>
     {:else if due.length}
-      <div class="todaycard">
-        <div><b>Повторение на сегодня</b><small>{due.length} {due.length === 1 ? 'элемент' : 'элементов'}: {dueText}</small></div>
-        <button class="btn" onclick={openReview}>Начать</button>
-      </div>
-    {:else}
-      <div class="todaycard">
-        <div><b>На сегодня всё повторено</b><small>Откройте любой раздел, чтобы учить новое</small></div>
-      </div>
+      <button class="reviewrow" onclick={openReview}>
+        <span>Повторение <small>({due.length})</small></span>
+        <span class="go">Начать</span>
+      </button>
     {/if}
 
     <div class="grid">
@@ -77,18 +68,21 @@
         <button class="tcard" onclick={() => open(m)}>
           <div class="g" class:latin={MODES[m].latin}>{MODES[m].glyph}</div>
           <b>{MODES[m].title}</b>
-          <small>{unit(m)} {s.learned}/{s.total}{s.learning ? ` · учится ${s.learning}` : ''}</small>
+          <small>{unit(m)} {s.learned} из {s.total}</small>
           <div class="bar">
             <i class="soft" style="width:{s.total ? (s.learned + s.learning) / s.total * 100 : 0}%"></i>
             <i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i>
           </div>
-          {#if pending[m]}<span class="cont">Продолжить · {pending[m].pos + 1}/{pending[m].total}</span>
+          {#if pending[m]}
+            <!-- незаконченный тест: кольцо прогресса без текста -->
+            <svg class="ring" viewBox="0 0 24 24" aria-label="Тест не закончен">
+              <circle cx="12" cy="12" r="9"/>
+              <circle cx="12" cy="12" r="9" class="v" style="stroke-dasharray: {Math.round(pending[m].pos / pending[m].total * 56.5)} 56.5"/>
+            </svg>
           {:else if s.due}<span class="due">{s.due}</span>{/if}
         </button>
       {/each}
     </div>
 
-    <p class="learnnote">Элемент считается выученным, когда вы ответили на него верно в три разных дня. Приложение само подскажет, что повторить, — заходите каждый день.</p>
-    <p class="learnnote">Транскрипция: <b>қ</b> — ق, <b>з̃</b> — ذ, <b>с̃</b> — ث, <b>ж</b> — ج, <b>`</b> — ع, <b>'</b> — хамза; долгие «ии», «уу» удваиваются.</p>
   </div>
 {/if}
