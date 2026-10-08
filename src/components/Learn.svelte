@@ -2,13 +2,24 @@
   import { fly, fade } from 'svelte/transition';
   import Brand from './Brand.svelte';
   import Quiz from './Quiz.svelte';
+  import Names99 from './Names99.svelte';
+  import { loadState as names99State } from '../lib/names99.js';
   import { MODES, MODE_KEYS, statsOf, buildDeck, pendingSession, restoreSession } from '../lib/quiz.js';
   import { dueAcross, getName } from '../lib/progress.js';
 
   let { quizOpen = $bindable(false) } = $props();
 
   let session = $state(null);   // { title, mode|null, deck }
+  let trivia = $state(false);   // открыта тривиа «99 имён»
+
+  /* Разделы учёбы */
+  const SECTIONS = [
+    { title: 'Арабский язык', sub: 'буквы, цифры, слова', modes: ['alphabet', 'numbers', 'dict'] },
+    { title: 'Коран',         sub: 'слова, суры, чтение на слух', modes: ['quran', 'surah', 'listen'] },
+    { title: 'Вера и история', sub: 'имена Аллаха, жизнь Пророка ﷺ', modes: ['names', 'sira'] },
+  ];
   let tick = $state(0);         // пересчёт статистики после теста
+  const n99 = $derived((tick, names99State()));
 
   const name = $derived((tick, getName()));
   const stats = $derived.by(() => { tick; const o = {}; for (const m of MODE_KEYS) o[m] = statsOf(m); return o; });
@@ -34,13 +45,18 @@
     session = { title: 'Повторение', mode: null, deck: shuffled };
     quizOpen = true;
   }
-  function close() { session = null; quizOpen = false; tick++; }
+  function close() { session = null; trivia = false; quizOpen = false; tick++; }
+  function openTrivia() { trivia = true; quizOpen = true; }
   const unit = m => (m === 'sira' ? 'Верно' : 'Выучено');
 </script>
 
 {#if session}
   <div in:fly={{ y: 24, duration: 260 }}>
     <Quiz {session} onclose={close} onanswer={() => tick++} />
+  </div>
+{:else if trivia}
+  <div in:fly={{ y: 24, duration: 260 }}>
+    <Names99 onclose={close} />
   </div>
 {:else}
   <div in:fade={{ duration: 200 }}>
@@ -62,27 +78,39 @@
       </button>
     {/if}
 
-    <div class="grid">
-      {#each MODE_KEYS as m}
-        {@const s = stats[m]}
-        <button class="tcard" onclick={() => open(m)}>
-          <div class="g" class:latin={MODES[m].latin}>{MODES[m].glyph}</div>
-          <b>{MODES[m].title}</b>
-          <small>{unit(m)} {s.learned} из {s.total}</small>
-          <div class="bar">
-            <i class="soft" style="width:{s.total ? (s.learned + s.learning) / s.total * 100 : 0}%"></i>
-            <i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i>
-          </div>
-          {#if pending[m]}
-            <!-- незаконченный тест: кольцо прогресса без текста -->
-            <svg class="ring" viewBox="0 0 24 24" aria-label="Тест не закончен">
-              <circle cx="12" cy="12" r="9"/>
-              <circle cx="12" cy="12" r="9" class="v" style="stroke-dasharray: {Math.round(pending[m].pos / pending[m].total * 56.5)} 56.5"/>
-            </svg>
-          {:else if s.due}<span class="due">{s.due}</span>{/if}
-        </button>
-      {/each}
-    </div>
-
+    {#each SECTIONS as sec}
+      <div class="lsec">
+        <div class="lsec-h"><b>{sec.title}</b><small>{sec.sub}</small></div>
+        <div class="grid" class:cols3={sec.modes.length === 3}>
+          {#each sec.modes as m}
+            {@const s = stats[m]}
+            <button class="tcard" onclick={() => open(m)}>
+              <div class="g" class:latin={MODES[m].latin}>{MODES[m].glyph}</div>
+              <b>{MODES[m].title}</b>
+              <small>{sec.modes.length === 3 ? `${s.learned} из ${s.total}` : `${unit(m)} ${s.learned} из ${s.total}`}</small>
+              <div class="bar">
+                <i class="soft" style="width:{s.total ? (s.learned + s.learning) / s.total * 100 : 0}%"></i>
+                <i style="width:{s.total ? s.learned / s.total * 100 : 0}%"></i>
+              </div>
+              {#if pending[m]}
+                <svg class="ring" viewBox="0 0 24 24" aria-label="Тест не закончен">
+                  <circle cx="12" cy="12" r="9"/>
+                  <circle cx="12" cy="12" r="9" class="v" style="stroke-dasharray: {Math.round(pending[m].pos / pending[m].total * 56.5)} 56.5"/>
+                </svg>
+              {:else if s.due}<span class="due">{s.due}</span>{/if}
+            </button>
+          {/each}
+          {#if sec.modes.includes('names')}
+            <!-- тривиа: вписать все 99 имён по памяти -->
+            <button class="tcard challenge" onclick={openTrivia}>
+              <div class="chal-top"><span class="chal-tag">Испытание</span><span class="chal-n">{n99.revealed.length - n99.hinted.length}<i>/99</i></span></div>
+              <b>Все 99 имён по памяти</b>
+              <small>{n99.best ? `Лучший результат: ${n99.best}` : 'Впишите каждое имя — по-арабски, по-русски или транскрипцией'}</small>
+              <div class="bar"><i style="width:{(n99.revealed.length - n99.hinted.length) / 99 * 100}%"></i></div>
+            </button>
+          {/if}
+        </div>
+      </div>
+    {/each}
   </div>
 {/if}
