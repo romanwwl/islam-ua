@@ -12,17 +12,17 @@ const LISTEN = AYAT.filter(a => a.ru.length <= 200);
 
 import { pickDeck, modeStats } from './progress.js';
 
-/* Режимы тестов. round — сколько вопросов в одном прохождении (иначе все); id — стабильный ключ элемента для прогресса;
+/* Режимы тестов. round — сколько вопросов в одном прохождении (только Словарь; иначе все элементы сразу); id — стабильный ключ элемента для прогресса;
    glyph — символ на карточке раздела; unit — что считаем («выучено» или «верно»). */
 export const MODES = {
-  alphabet: { title: 'Алфавит',      data: LETTERS, label: l => l.name, id: l => l.c,  glyph: 'ب',      round: 28 },
-  numbers:  { title: 'Цифры',        data: NUMBERS, label: x => String(x.n), id: x => x.id, glyph: '٧', round: 60, sameCat: true },
-  names:    { title: 'Имена Аллаха', data: NAMES,   label: n => n.tr,   id: n => n.ar, glyph: 'الله',   round: 99, ordered: true },
+  alphabet: { title: 'Алфавит',      data: LETTERS, label: l => l.name, id: l => l.c,  glyph: 'ب' },
+  numbers:  { title: 'Цифры',        data: NUMBERS, label: x => String(x.n), id: x => x.id, glyph: '٧', sameCat: true },
+  names:    { title: 'Имена Аллаха', data: NAMES,   label: n => n.tr,   id: n => n.ar, glyph: 'الله',   ordered: true },
   dict:     { title: 'Словарь',      data: WORDS,   label: w => w.tr,   id: w => w.ar, glyph: 'بَيْت',  round: 30 },
-  quran:    { title: 'Коран',        data: QURAN,   label: w => w.tr,   id: w => w.ar, glyph: 'قُرْآن', round: 30, sameCat: true },
-  sira:     { title: 'Сира',         data: SIRA,    label: x => (x.ans !== undefined ? x.ans : x.a[0]), id: x => x.q, glyph: 'سِيرَة', round: 30 },
-  surah:    { title: 'Суры',         data: SURAHS,  label: s => s.lb,   id: s => String(s.n), glyph: '114', latin: true, round: 30 },
-  listen:   { title: 'На слух',      data: LISTEN,  label: a => a.ru,   id: a => a.ref, glyph: 'سَمَاع', round: 15, single: true },
+  quran:    { title: 'Коран',        data: QURAN,   label: w => w.tr,   id: w => w.ar, glyph: 'قُرْآن', sameCat: true },
+  sira:     { title: 'Сира',         data: SIRA,    label: x => (x.ans !== undefined ? x.ans : x.a[0]), id: x => x.q, glyph: 'سِيرَة' },
+  surah:    { title: 'Суры',         data: SURAHS,  label: s => s.lb,   id: s => String(s.n), glyph: '114', latin: true },
+  listen:   { title: 'На слух',      data: LISTEN,  label: a => a.ru,   id: a => a.ref, glyph: 'سَمَاع', single: true },
 };
 export const MODE_KEYS = Object.keys(MODES);
 export const idsOf = mode => MODES[mode].data.map(MODES[mode].id);

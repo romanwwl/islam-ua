@@ -1,13 +1,21 @@
 <script>
   import { onMount } from 'svelte';
+  import { fly } from 'svelte/transition';
   import Brand from './Brand.svelte';
   import Qibla from './Qibla.svelte';
+  import Schedule from './Schedule.svelte';
   import { METHODS, PRAYER_KEYS, PRAYER_RU, timesFor, coordsFor, jumuahFor, isFriday, fmtTime, hijri } from '../lib/prayer.js';
   import { prayer, applyNotify } from '../lib/settings.svelte.js';
   import { ayahOfDay, hadithOfDay, duaOfDay, nameOfDay, refLabel } from '../lib/daily.js';
   import { playAyah, onAudio, isPlaying } from '../lib/audio.js';
 
-  let { active = false, onsettings } = $props();
+  let { active = false, onsettings, overlay = $bindable(false) } = $props();
+  let sched = $state(false);   // открыт экран расписания уроков
+  function openSched() { sched = true; overlay = true; window.scrollTo(0, 0); }
+  function closeSched() { sched = false; overlay = false; }
+  // ближайшая суббота
+  const nextSat = $derived.by(() => { const d = new Date(now); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7)); return d; });
+  const satLabel = $derived(nextSat.toDateString() === now.toDateString() ? 'сегодня' : nextSat.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'short' }));
 
   let now = $state(new Date());
   let dayKey = $state('');
@@ -89,6 +97,9 @@
   }
 </script>
 
+{#if sched}
+  <div in:fly={{ y: 24, duration: 260 }}><Schedule onclose={closeSched} /></div>
+{:else}
 <div class="homehead">
   <Brand subtitle={`${coords.name} · ${prayer.method === 'amu' ? 'мечеть АМУ' : methodName}`} />
   <button class="iconbtn plain gear" onclick={onsettings} aria-label="Настройки намаза">
@@ -118,6 +129,11 @@
     <div class="jt">{jumuah}</div>
   </div>
 {/if}
+
+<button class="pjumua lessons" onclick={openSched}>
+  <div class="jn"><b>Уроки в мечети</b> · суббота, {satLabel}</div>
+  <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+</button>
 
 <!-- ---------- Контент дня ---------- -->
 {#if ayah}
@@ -180,3 +196,4 @@
   <header><span class="dlabel"><i class="dot"></i>Кибла</span></header>
   <Qibla lat={coords.lat} lng={coords.lng} place={coords.name} />
 </section>
+{/if}

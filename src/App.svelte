@@ -11,6 +11,7 @@
   let tab = $state(load('islamua_tab', { tab: 'prayer' }).tab);
   let prev = $state(untrack(() => tab));
   let quizOpen = $state(false); // во время теста нижняя панель скрыта
+  let homeOverlay = $state(false); // экран расписания на «Сегодня»
 
   function go(t) {
     if (t === tab) return;
@@ -25,7 +26,7 @@
   {#key tab}
     <div class="screen" in:fly={{ x: 40 * dir, duration: 280, opacity: 0.4 }}>
       {#if tab === 'prayer'}
-        <Home active={true} onsettings={() => go('profile')} />
+        <Home active={true} onsettings={() => go('profile')} bind:overlay={homeOverlay} />
       {:else if tab === 'learn'}
         <Learn bind:quizOpen />
       {:else}
@@ -35,6 +36,6 @@
   {/key}
 </div>
 
-{#if !quizOpen}
+{#if !quizOpen && !homeOverlay}
   <TabBar {tab} onselect={go} />
 {/if}
