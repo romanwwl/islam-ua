@@ -22,6 +22,9 @@
   const dir = $derived(TABS.indexOf(tab) >= TABS.indexOf(prev) ? 1 : -1);
 </script>
 
+<!-- цветные пятна фона — через них просвечивает «жидкое стекло» -->
+<div class="bgfx" aria-hidden="true"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+
 <div class="app">
   {#key tab}
     <div class="screen" in:fly={{ x: 40 * dir, duration: 280, opacity: 0.4 }}>

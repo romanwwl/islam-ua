@@ -2,7 +2,8 @@
   --bg:#0f2036; --bg-top:#22406e; --bg2:#172a44; --card:#1c3352; --card2:#22406a; --line:#2f4a6e;
   --ink:#eaf1f8; --muted:#93a6bf; --gold:#ffd21e; --gold-soft:#e0b400; --gold-ink:#0f2036;
   --green:#4ccb8f; --green-bg:#123a2c; --red:#e56f61; --red-bg:#3a1f24;
-  --tabbar:64px;
+  --tabbar:88px;
+  --glass:rgba(255,255,255,.07); --glass-2:rgba(255,255,255,.12); --glass-line:rgba(255,255,255,.16); --glass-hi:rgba(255,255,255,.28);
   --ease:cubic-bezier(.2,.8,.2,1);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -406,3 +407,96 @@ button, .tab, .mbtn { -webkit-user-select:none; user-select:none; font-family:in
 .place svg{ width:22px; height:22px; stroke:var(--gold); fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none; }
 .place b{ display:block; font-size:14px; }
 .place small{ display:block; font-size:12px; color:var(--muted); margin-top:2px; }
+
+
+/* =====================================================================
+   Liquid Glass (iOS 26): полупрозрачные стеклянные поверхности с размытием фона,
+   бликом по верхней кромке, плавающая капсула таб-бара, цветные пятна за стеклом.
+   ===================================================================== */
+.bgfx{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+.bgfx i{ position:absolute; border-radius:50%; filter:blur(70px); opacity:.5; will-change:transform; animation:drift 22s ease-in-out infinite alternate; }
+.bgfx .b1{ width:60vw; height:60vw; max-width:360px; max-height:360px; right:-18vw; top:-8vh; background:radial-gradient(circle,#ffd21e 0%,#c98f00 45%,transparent 72%); }
+.bgfx .b2{ width:70vw; height:70vw; max-width:420px; max-height:420px; left:-30vw; top:28vh; background:radial-gradient(circle,#3f8cff 0%,#1b4fb0 45%,transparent 72%); animation-delay:-7s; opacity:.42; }
+.bgfx .b3{ width:55vw; height:55vw; max-width:340px; max-height:340px; right:-10vw; bottom:-6vh; background:radial-gradient(circle,#8a6bff 0%,#4a2ca8 45%,transparent 72%); animation-delay:-14s; opacity:.38; }
+@keyframes drift{ from{ transform:translate3d(0,0,0) scale(1) } to{ transform:translate3d(-24px,28px,0) scale(1.08) } }
+
+/* стеклянные поверхности */
+.tcard, .dcard, .card, .list, .prow, .pjumua, .reviewrow, .stat, .panel, .opt, .sched, .place, .week, .n99done,
+.form-cell, .hint-box, .n99form input, .iconbtn:not(.plain), .todaycard, .chip, .play-btn, .n99cell.ok, .n99cell.hint, .n99cell.miss{
+  background:linear-gradient(135deg, var(--glass-2), var(--glass));
+  -webkit-backdrop-filter:blur(18px) saturate(170%); backdrop-filter:blur(18px) saturate(170%);
+  border:1px solid var(--glass-line);
+  box-shadow:inset 0 1px 0 var(--glass-hi), inset 0 -1px 0 rgba(0,0,0,.12), 0 14px 34px -18px rgba(0,0,0,.7);
+}
+.tcard, .dcard, .card, .list, .prow, .pjumua, .reviewrow, .panel, .sched, .place, .week, .n99done, .todaycard{ border-radius:20px; }
+.card{ border-radius:26px; }
+.opt{ border-radius:18px; }
+.stat, .form-cell, .hint-box{ border-radius:16px; }
+.chip{ border-radius:99px; }
+/* блик по верхней кромке */
+.tcard::before, .dcard::before, .card::before, .prow::before, .pjumua::before, .reviewrow::before, .panel::before, .sched::before, .place::before, .todaycard::before{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.03) 28%, transparent 60%);
+}
+.tcard, .dcard, .prow, .pjumua, .reviewrow, .panel, .sched, .place, .todaycard{ position:relative; }
+.dcard, .panel, .sched, .place, .list{ overflow:hidden; }
+.panel{ border-left:1px solid var(--glass-line); }
+.panel::after{ content:""; position:absolute; left:0; top:14px; bottom:14px; width:3px; border-radius:3px; background:linear-gradient(180deg,var(--gold),var(--gold-soft)); }
+.li{ border-bottom-color:rgba(255,255,255,.08); }
+.lesson{ border-top-color:rgba(255,255,255,.08); }
+.bar{ background:rgba(255,255,255,.12); }
+.tcard.challenge{ background:linear-gradient(135deg, rgba(255,210,30,.16), rgba(255,255,255,.05)); border-color:rgba(255,210,30,.35); }
+.tcard:active{ border-color:rgba(255,210,30,.5); }
+.pcell.cur .tm{ background:rgba(255,255,255,.14); }
+.opt.correct{ background:linear-gradient(135deg, rgba(76,203,143,.32), rgba(76,203,143,.12)); border-color:rgba(76,203,143,.7); }
+.opt.wrong{ background:linear-gradient(135deg, rgba(229,111,97,.32), rgba(229,111,97,.12)); border-color:rgba(229,111,97,.7); }
+.n99cell{ border-color:rgba(255,255,255,.14); background:rgba(255,255,255,.04); }
+.n99cell.ok{ background:linear-gradient(135deg, rgba(76,203,143,.26), rgba(76,203,143,.08)); border-color:rgba(76,203,143,.5); }
+.n99cell.miss{ background:linear-gradient(135deg, rgba(229,111,97,.26), rgba(229,111,97,.08)); border-color:rgba(229,111,97,.5); }
+.qsvg .rim{ fill:rgba(255,255,255,.06); stroke:var(--glass-line); }
+.hint-box{ border-style:solid; }
+.n99form input{ border-radius:18px; }
+.n99form input:focus{ border-color:rgba(255,210,30,.7); }
+.n99form{ background:linear-gradient(180deg, rgba(34,64,110,.92) 60%, rgba(34,64,110,0)); }
+.avatar input{ border-bottom-color:rgba(255,255,255,.2); }
+.day i{ border-color:rgba(255,255,255,.22); }
+.toggle input{ background:rgba(255,255,255,.14); box-shadow:inset 0 1px 2px rgba(0,0,0,.3); }
+
+/* золотые «линзы»: кнопки и выделение намаза */
+.btn:not(.ghost), .next, .reviewrow .go, .playbig, .n99form button, .chip.on, .prow .slider, .avatar .a{
+  background:linear-gradient(180deg,#ffe561 0%,#ffd21e 48%,#e6b800 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65), inset 0 -2px 0 rgba(0,0,0,.14), 0 10px 26px -10px var(--gold);
+}
+.btn.ghost{ background:var(--glass); border-color:var(--glass-line); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); }
+.btn{ border-radius:16px; }
+.next{ border-radius:16px; }
+.reviewrow .go{ border-radius:12px; }
+.chip.on{ border-color:transparent; }
+.prow .slider{ border-radius:14px; }
+.iconbtn{ border-radius:16px; }
+
+/* плавающая капсула таб-бара */
+.tabbar{
+  left:50%; right:auto; transform:translateX(-50%); width:calc(100% - 32px); max-width:420px;
+  bottom:calc(12px + env(safe-area-inset-bottom));
+  border:1px solid var(--glass-line); border-radius:34px;
+  background:linear-gradient(135deg, rgba(40,66,110,.78), rgba(15,32,54,.80));
+  -webkit-backdrop-filter:blur(30px) saturate(180%); backdrop-filter:blur(30px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28), inset 0 -1px 0 rgba(0,0,0,.2), 0 18px 44px -14px rgba(0,0,0,.75);
+  padding:6px 8px;
+}
+.tabbar .in{ grid-template-columns:repeat(3,1fr); }
+.tab{ padding:5px 0 4px; gap:2px; }
+.tab .ico{ width:56px; height:32px; border-radius:16px; }
+.tab.active .ico{
+  background:linear-gradient(180deg, rgba(255,255,255,.26), rgba(255,255,255,.08));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45), inset 0 -1px 0 rgba(0,0,0,.15), 0 6px 14px -8px rgba(0,0,0,.8);
+}
+.tab.active{ color:var(--gold); }
+
+/* стеклянная шапка теста */
+.qtop .iconbtn.plain{ background:var(--glass); border:1px solid var(--glass-line); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-radius:50%; width:36px; height:36px; }
+.homehead .gear{ background:var(--glass); border:1px solid var(--glass-line); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-radius:50%; width:38px; height:38px; margin:-2px 0 0 0; }
+.dcard .share{ border-radius:50%; }
+.dcard .share:active{ background:var(--glass-2); }
+.brand .logo{ box-shadow:0 10px 24px -10px #000, 0 0 0 1px rgba(255,255,255,.12); border-radius:12px; }
