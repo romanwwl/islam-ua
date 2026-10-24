@@ -5,6 +5,7 @@
   import { hapticCorrect, hapticWrong } from '../lib/haptics.js';
   import { refLabel as ayahRefLabel } from '../lib/daily.js';
   import { playAyah, stopAyah, onAudio, preloadAyah } from '../lib/audio.js';
+  import { gapHTML } from '../lib/spelling.js';
   import { onDestroy } from 'svelte';
 
   let { session, onclose, onanswer } = $props();
@@ -162,6 +163,13 @@
     {:else if mode === 'numbers'}
       <div class="glyph name" class:digits={current.kind === 'digit'}>{current.ar}</div>
       {#if current.kind === 'word'}<div class="translit">{current.tl}</div>{/if}
+    {:else if mode === 'missing'}
+      <div class="glyph name gapword">{@html gapHTML(current.sk, current.idx)}</div>
+      <div class="translit">{current.ru}&nbsp;&nbsp;·&nbsp;&nbsp;<span class="lat">{current.tr}</span></div>
+    {:else if mode === 'harakat'}
+      <div class="glyph name">{current.sk}</div>
+      <div class="translit">{current.ru}&nbsp;&nbsp;·&nbsp;&nbsp;<span class="lat">{current.tr}</span></div>
+      <div class="hint-text">Как правильно огласовать?</div>
     {:else if mode === 'listen'}
       <button class="playbig" class:playing={audioState === 'playing'} class:loading={audioState === 'loading'} onclick={playCurrent} aria-label="Прослушать аят">
         {#if audioState === 'playing'}
@@ -216,7 +224,7 @@
     </div>
   {/if}
 
-  <div class="options" class:single={cfg.single || mode === 'sira' || mode === 'surah'} class:text={mode === 'listen'}>
+  <div class="options" class:single={cfg.single || mode === 'sira' || mode === 'surah'} class:text={mode === 'listen'} class:ar={cfg.arOpts}>
     {#each options as o, i}
       <button class="opt {optClass(o)}" disabled={answered} onclick={() => choose(o)}>
         <span class="num">{i + 1}</span>{label(mode, o)}
@@ -256,6 +264,10 @@
             {#if current.exnote}<div class="ex-note">{current.exnote}</div>{/if}
           </div>
         {/if}
+      {:else if mode === 'missing' || mode === 'harakat'}
+        <div class="rname"><span class="arname">{current.ar}</span></div>
+        <div class="rvars">{current.ru} — {current.tr}</div>
+        {#if mode === 'missing'}<div class="rbody">Пропущена буква <span class="arinline">{current.letter}</span>{#if current.letter === 'ة'} — та-марбута, пишется только в конце слова{:else if 'دذرزوا'.includes(current.letter)} — после неё буквы не соединяются{/if}.</div>{/if}
       {:else if mode === 'listen'}
         <div class="example">
           <div class="ex-ayah">{current.ar}</div>

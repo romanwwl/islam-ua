@@ -500,3 +500,25 @@ button, .tab, .mbtn { -webkit-user-select:none; user-select:none; font-family:in
 .dcard .share{ border-radius:50%; }
 .dcard .share:active{ background:var(--glass-2); }
 .brand .logo{ box-shadow:0 10px 24px -10px #000, 0 0 0 1px rgba(255,255,255,.12); border-radius:12px; }
+
+/* ---------- Правописание ---------- */
+.gap{ display:inline; color:transparent; text-decoration:underline dashed var(--gold); text-decoration-thickness:3px; text-underline-offset:.08em; text-decoration-skip-ink:none; }
+.glyph.gapword{ font-size:58px; white-space:nowrap; }
+.hint-text{ margin-top:10px; font-size:12.5px; color:var(--muted); }
+.options.ar .opt{ font-family:'Amiri',serif; font-size:30px; line-height:1.3; direction:rtl; padding:8px 12px; min-height:60px; }
+.options.ar.single .opt{ font-size:30px; justify-content:center; padding-left:12px; }
+.arinline{ font-family:'Amiri',serif; font-size:22px; color:var(--gold); margin:0 3px; }
+.sp-card{ padding:18px 18px 16px; }
+.sp-prompt b{ display:block; font-size:22px; font-weight:700; }
+.sp-prompt span{ display:block; font-size:14px; color:var(--muted); margin-top:3px; }
+.sp-word{ font-family:'Amiri',serif; font-size:52px; line-height:1.3; direction:rtl; color:var(--gold); margin-top:12px; min-height:68px; letter-spacing:1px; }
+.sp-word.empty{ color:var(--muted); }
+.sp-word .ok{ color:var(--green); }
+.sp-word.shake{ animation:shake .4s var(--ease); }
+.sp-sub{ font-size:12.5px; color:var(--muted); margin-top:4px; min-height:18px; }
+.tiles{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:16px; direction:rtl; }
+.tile{ width:62px; font-family:'Amiri',serif; font-size:30px; line-height:1; height:58px; border-radius:16px; color:var(--ink); cursor:pointer; transition:transform .12s var(--ease), opacity .2s; }
+.tile:active:not(:disabled){ transform:scale(.94); }
+.tile.used{ opacity:.25; }
+.tile{ background:linear-gradient(135deg, var(--glass-2), var(--glass)); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border:1px solid var(--glass-line); box-shadow:inset 0 1px 0 var(--glass-hi), 0 10px 24px -16px rgba(0,0,0,.7); }
+.nextrow .next.hidden{ visibility:hidden; }

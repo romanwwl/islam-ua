@@ -3,6 +3,7 @@
   import Brand from './Brand.svelte';
   import Quiz from './Quiz.svelte';
   import Names99 from './Names99.svelte';
+  import Spell from './Spell.svelte';
   import { loadState as names99State } from '../lib/names99.js';
   import { MODES, MODE_KEYS, statsOf, buildDeck, pendingSession, restoreSession } from '../lib/quiz.js';
   import { dueAcross, getName } from '../lib/progress.js';
@@ -11,11 +12,13 @@
 
   let session = $state(null);   // { title, mode|null, deck }
   let trivia = $state(false);   // открыта тривиа «99 имён»
+  let spell = $state(false);    // открыта игра «Собери слово»
 
   /* Разделы учёбы */
   const SECTIONS = [
     { title: 'Арабский язык', sub: 'буквы, цифры, слова', modes: ['alphabet', 'numbers', 'dict'] },
     { title: 'Коран',         sub: 'слова, суры, чтение на слух', modes: ['quran', 'surah', 'listen'] },
+    { title: 'Правописание', sub: 'собрать, дописать, огласовать', modes: ['spell', 'missing', 'harakat'] },
     { title: 'Вера и история', sub: 'имена Аллаха, жизнь Пророка ﷺ', modes: ['names', 'sira'] },
   ];
   let tick = $state(0);         // пересчёт статистики после теста
@@ -34,6 +37,7 @@
   const pending = $derived.by(() => { tick; const o = {}; for (const m of [...MODE_KEYS, 'review']) o[m] = pendingSession(m); return o; });
 
   function open(mode) {
+    if (MODES[mode].custom === 'spell') { spell = true; quizOpen = true; return; }
     const r = restoreSession(mode);
     session = r ? { ...r.session, resume: r.state } : { title: MODES[mode].title, mode, deck: buildDeck(mode) };
     quizOpen = true;
@@ -45,7 +49,7 @@
     session = { title: 'Повторение', mode: null, deck: shuffled };
     quizOpen = true;
   }
-  function close() { session = null; trivia = false; quizOpen = false; tick++; }
+  function close() { session = null; trivia = false; spell = false; quizOpen = false; tick++; }
   function openTrivia() { trivia = true; quizOpen = true; }
   const unit = m => (m === 'sira' ? 'Верно' : 'Выучено');
 </script>
@@ -57,6 +61,10 @@
 {:else if trivia}
   <div in:fly={{ y: 24, duration: 260 }}>
     <Names99 onclose={close} />
+  </div>
+{:else if spell}
+  <div in:fly={{ y: 24, duration: 260 }}>
+    <Spell onclose={close} onanswer={() => tick++} />
   </div>
 {:else}
   <div in:fade={{ duration: 200 }}>

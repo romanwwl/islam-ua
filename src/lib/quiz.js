@@ -6,6 +6,7 @@ import SURAHS from '../data/surahs.json';
 import QURAN from '../data/quran.json';
 import NUMBERS from '../data/numbers.json';
 import AYAT from '../data/ayat.json';
+import { SPELL_WORDS, MISSING, HARAKAT_ITEMS } from './spelling.js';
 
 /* Аяты на слух: известные аяты с не слишком длинным переводом (варианты ответа — переводы) */
 const LISTEN = AYAT.filter(a => a.ru.length <= 200);
@@ -23,6 +24,10 @@ export const MODES = {
   sira:     { title: 'Сира',         data: SIRA,    label: x => (x.ans !== undefined ? x.ans : x.a[0]), id: x => x.q, glyph: 'سِيرَة' },
   surah:    { title: 'Суры',         data: SURAHS,  label: s => s.lb,   id: s => String(s.n), glyph: '114', latin: true },
   listen:   { title: 'На слух',      data: LISTEN,  label: a => a.ru,   id: a => a.ref, glyph: 'سَمَاع', single: true },
+  /* правописание */
+  spell:    { title: 'Собери слово', data: SPELL_WORDS, label: w => w.sk, id: w => w.ar, glyph: 'ب+ي+ت', round: 20, custom: 'spell' },
+  missing:  { title: 'Пропущенная буква', data: MISSING, label: x => (x.ans !== undefined ? x.ans : x.letter), id: x => x.ar, glyph: 'كتـ؟ب', round: 30, ownOpts: true, arOpts: true },
+  harakat:  { title: 'Огласовки',    data: HARAKAT_ITEMS, label: x => (x.ans !== undefined ? x.ans : x.ar), id: x => x.ar, glyph: 'ـَـُـِ', round: 30, ownOpts: true, arOpts: true, single: true },
 };
 export const MODE_KEYS = Object.keys(MODES);
 export const idsOf = mode => MODES[mode].data.map(MODES[mode].id);
@@ -96,6 +101,7 @@ export function surahName(n) {
 export function buildOptions(mode, current) {
   const cfg = MODES[mode];
   if (mode === 'sira') return shuffle(current.a.map(s => ({ ans: s })));
+  if (cfg.ownOpts) return shuffle(current.opts.map(s => ({ ans: s })));   // варианты заданы в самом элементе
   const label = cfg.label;
   const correct = label(current);
   const opts = [current];
@@ -159,7 +165,7 @@ export function restoreSession(key) {
   const optsCache = s.opts.map((ids, i) => {
     if (!ids || !ids.length) return undefined;
     const m = deck[i].mode;
-    if (m === 'sira') return ids.map(ans => ({ ans }));
+    if (m === 'sira' || MODES[m].ownOpts) return ids.map(ans => ({ ans }));
     const o = ids.map(id => findItem(m, id)).filter(Boolean);
     return o.length ? o : undefined;
   });
