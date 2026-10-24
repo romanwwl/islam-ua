@@ -15,10 +15,15 @@
       "infoPlist": {
         "CFBundleDisplayName": "ISLAM UA",
         "CFBundleDevelopmentRegion": "ru",
-        "CFBundleLocalizations": ["ru", "uk"],
+        "CFBundleLocalizations": [
+          "ru",
+          "uk"
+        ],
         "NSLocationWhenInUseUsageDescription": "Нужно для точного расчёта времени намаза и направления Киблы.",
         "NSMotionUsageDescription": "Нужно для компаса Киблы.",
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -43,7 +48,9 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 220,
           "backgroundColor": "#0B2A6F",
-          "dark": { "backgroundColor": "#0B2A6F" }
+          "dark": {
+            "backgroundColor": "#0B2A6F"
+          }
         }
       ],
       [
@@ -59,13 +66,23 @@
       ],
       [
         "expo-notifications",
-        { "icon": "./assets/splash-icon.png", "color": "#F0C75E" }
+        {
+          "icon": "./assets/splash-icon.png",
+          "color": "#F0C75E"
+        }
       ],
       [
         "expo-location",
-        { "locationWhenInUsePermission": "Нужно для точного расчёта времени намаза и направления Киблы." }
+        {
+          "locationWhenInUsePermission": "Нужно для точного расчёта времени намаза и направления Киблы."
+        }
       ],
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false
+        }
+      ],
       "expo-sensors"
     ],
     "experiments": {

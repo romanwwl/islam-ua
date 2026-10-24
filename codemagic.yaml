@@ -1,20 +1,20 @@
-# Codemagic CI — Islam UA (Capacitor, iOS)
+# Codemagic CI — ISLAM UA 2.0 (React Native + Expo, iOS)
 # Собирает .ipa на облачном Mac и загружает в TestFlight / App Store Connect.
 # Ничего здесь менять не нужно, кроме APP_STORE_APPLE_ID, если у приложения другой Apple ID.
 
 workflows:
-  ios-testflight:
-    name: Islam UA — iOS → TestFlight
+  ios-testflight-rn:
+    name: ISLAM UA 2.0 — iOS → TestFlight
     instance_type: mac_mini_m2
-    max_build_duration: 60
+    max_build_duration: 90
 
-    # Сборка стартует автоматически при пуше в ветку release (обычные коммиты в main не собираются).
-    # Выпуск = git push origin main:release
+    # Сборка стартует автоматически при пуше в ветку rn-release (обычные коммиты в rn не собираются).
+    # Выпуск = git push origin rn:rn-release
     triggering:
       events:
         - push
       branch_patterns:
-        - pattern: release
+        - pattern: rn-release
           include: true
           source: true
       cancel_previous_builds: true
@@ -27,45 +27,44 @@ workflows:
     environment:
       node: 22
       xcode: latest
+      cocoapods: default
       ios_signing:
         distribution_type: app_store
         bundle_identifier: ua.islamua.app
       vars:
-        XCODE_PROJECT: "ios/App/App.xcodeproj"
-        XCODE_SCHEME: "App"
+        XCODE_WORKSPACE: "ios/ISLAMUA.xcworkspace"
+        XCODE_SCHEME: "ISLAMUA"
         APP_STORE_APPLE_ID: 6815393222   # Apple ID приложения из App Store Connect (из URL страницы приложения)
+        CI: "1"
 
     scripts:
       - name: Install npm dependencies
         script: npm ci
 
-      - name: Build web app (Vite → www/)
-        script: npm run build
-
-      - name: Sync web assets into the iOS project
-        script: npx cap sync ios
+      - name: Generate the native iOS project (Expo prebuild + CocoaPods)
+        script: npx expo prebuild --platform ios --no-interactive
 
       - name: Apply code signing to Xcode project
-        script: xcode-project use-profiles --project "$XCODE_PROJECT"
+        script: xcode-project use-profiles --project "ios/ISLAMUA.xcodeproj"
 
       - name: Set build number (auto-increment)
         script: |
-          cd ios/App
           # Номер сборки должен быть строго больше предыдущего загруженного в App Store Connect.
-          # Берём максимум из: последнего номера в TestFlight/App Store (если API ответил) и номера сборки Codemagic + 10.
+          # Берём максимум из: последнего номера в TestFlight/App Store (если API ответил) и номера сборки Codemagic + 100.
           TF=$(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || true)
           AS=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || true)
           echo "TestFlight latest: '${TF:-—}', App Store latest: '${AS:-—}', Codemagic build: $BUILD_NUMBER"
           case "$TF" in ''|*[!0-9]*) TF=0;; esac
           case "$AS" in ''|*[!0-9]*) AS=0;; esac
           NEXT=$(( (TF > AS ? TF : AS) + 1 ))
-          CM=$(( BUILD_NUMBER + 10 ))
+          CM=$(( BUILD_NUMBER + 100 ))
           [ "$CM" -gt "$NEXT" ] && NEXT=$CM
           echo "Build number: $NEXT"
-          agvtool new-version -all "$NEXT"
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $NEXT" ios/ISLAMUA/Info.plist
+          cd ios && agvtool new-version -all "$NEXT"
 
       - name: Build .ipa
-        script: xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+        script: xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
 
     artifacts:
       - build/ios/ipa/*.ipa
