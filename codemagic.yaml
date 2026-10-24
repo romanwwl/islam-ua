@@ -42,7 +42,7 @@ workflows:
         script: npm ci
 
       - name: Generate the native iOS project (Expo prebuild + CocoaPods)
-        script: npx expo prebuild --platform ios --no-interactive
+        script: npx expo prebuild --platform ios
 
       - name: Apply code signing to Xcode project
         script: xcode-project use-profiles --project "ios/ISLAMUA.xcodeproj"
