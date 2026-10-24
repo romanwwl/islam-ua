@@ -23,7 +23,7 @@
   let tomorrow = $state(null);
 
   const coords = $derived(coordsFor(prayer));
-  const jumuah = $derived(jumuahFor(prayer));
+  const jumuah = $derived(jumuahFor(prayer, now));
   const friday = $derived(isFriday(now));
   const methodName = $derived((METHODS[prayer.method] || METHODS.amu).name.replace(/\s*\(.*\)$/, ''));
 

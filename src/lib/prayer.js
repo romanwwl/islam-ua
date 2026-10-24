@@ -5,12 +5,12 @@ export { CITIES };
 /*
  * Методы расчёта. fajr / isha — углы Солнца под горизонтом (градусы), ishaMin — фиксированные минуты после магриба.
  * offsets — поправки в минутах, которые мечеть добавляет к расчётному времени (ихтият).
- * jumuah — время пятничной молитвы по умолчанию для этого пресета.
+ * jumuah — время пятничной молитвы по умолчанию для этого пресета (jumuahWinter — после перевода часов на зимнее время).
  *
  * «Мечеть АМУ (Киев)»: по словам мечети — стандартный ISNA, 15°/15°, без поправок; джума 13:30.
  */
 export const METHODS = {
-  amu:     { name: 'Мечеть АМУ (Киев)', fajr: 15,   isha: 15,   jumuah: '13:30' },
+  amu:     { name: 'Мечеть АМУ (Киев)', fajr: 15,   isha: 15,   jumuah: '13:30', jumuahWinter: '12:30' },
   mwl:     { name: 'Лига исламского мира (18° / 17°)', fajr: 18,   isha: 17 },
   diyanet: { name: 'Диянет, Турция (18° / 17°)',       fajr: 18,   isha: 17 },
   isna:    { name: 'ISNA (15° / 15°)',                  fajr: 15,   isha: 15 },
@@ -101,16 +101,24 @@ export function paramsFor(state) {
 }
 
 /* Время джумы «HH:MM» из пресета мечети (или '' — если у метода нет фиксированной джумы) */
-export function jumuahFor(state) {
+export function jumuahFor(state, date = new Date()) {
   const m = METHODS[state.method];
-  return (m && m.jumuah) || '';
+  if (!m || !m.jumuah) return '';
+  return (m.jumuahWinter && !isDST(date)) ? m.jumuahWinter : m.jumuah;
+}
+
+/* Летнее время сейчас? (смещение от UTC меньше, чем зимой) */
+export function isDST(d) {
+  const jan = new Date(d.getFullYear(), 0, 1).getTimezoneOffset();
+  const jul = new Date(d.getFullYear(), 6, 1).getTimezoneOffset();
+  return jan !== jul && d.getTimezoneOffset() === Math.min(jan, jul);
 }
 
 /* Все времена на дату (Date-объекты в локальном времени) */
 export function timesFor(date, state) {
   const co = coordsFor(state), p = paramsFor(state);
   const t = toDates(computePrayerTimes(date, co.lat, co.lng, p), date, p.offsets);
-  const j = jumuahFor(state);
+  const j = jumuahFor(state, date);
   if (j) {
     const [h, m] = j.split(':').map(Number);
     t.jumuah = new Date(date.getFullYear(), date.getMonth(), date.getDate(), h, m, 0, 0);
