@@ -1,7 +1,7 @@
 /* Корень приложения: загрузка шрифтов и настроек, тема, безопасные зоны, стек экранов. */
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, ThemeProvider as NavThemeProvider, DarkTheme, DefaultTheme } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
@@ -19,15 +19,20 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 function Shell() {
   const { isDark, colors } = useTheme();
+  // навигация не должна красить фон — его рисует Background под всеми экранами
+  const base = isDark ? DarkTheme : DefaultTheme;
+  const navTheme = { ...base, colors: { ...base.colors, background: 'transparent', card: colors.card, text: colors.label, primary: colors.accent, border: colors.separator } };
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
       <Background />
       <StatusBar style={isDark ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' }, animation: 'slide_from_right' }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="schedule" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-        <Stack.Screen name="appearance" options={{ animation: 'slide_from_right' }} />
-      </Stack>
+      <NavThemeProvider value={navTheme}>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' }, animation: 'slide_from_right' }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="schedule" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="appearance" options={{ animation: 'slide_from_right' }} />
+        </Stack>
+      </NavThemeProvider>
     </View>
   );
 }

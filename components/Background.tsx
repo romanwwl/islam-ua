@@ -8,7 +8,6 @@ import type { ThemeId } from '../theme/tokens';
 
 type PatternKind = 'octagram' | 'lattice' | 'carpet' | 'glow' | 'none';
 const KIND: Record<ThemeId, PatternKind> = { sapphire: 'glow', midnight: 'octagram', emerald: 'lattice', maroon: 'carpet', parchment: 'octagram', sand: 'none' };
-const GLOW_TOP: Partial<Record<ThemeId, string>> = { sapphire: '#1f4fb8', midnight: '#1a2f62', emerald: '#145040', maroon: '#4a1529', parchment: '#faf4e8', sand: '#f1eada' };
 
 export function Background({ children }: { children?: React.ReactNode }) {
   const { id, colors, pattern, isDark } = useTheme();
@@ -17,7 +16,7 @@ export function Background({ children }: { children?: React.ReactNode }) {
   const opacity = isDark ? 0.10 : 0.07;
   return (
     <View style={StyleSheet.absoluteFill}>
-      <LinearGradient colors={[GLOW_TOP[id] ?? colors.bg, colors.bg, colors.bgDeep]} locations={[0, 0.45, 1]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={[colors.bg, colors.bg, colors.bgDeep]} locations={[0, 0.5, 1]} style={StyleSheet.absoluteFill} />
       {kind !== 'none' && (
         <Svg width="100%" height="100%" style={StyleSheet.absoluteFill} pointerEvents="none">
           <Defs>
@@ -48,9 +47,9 @@ export function Background({ children }: { children?: React.ReactNode }) {
               </Pattern>
             )}
             {kind === 'glow' && (
-              <RadialGradient id="g" cx="20%" cy="0%" rx="70%" ry="45%" gradientUnits="objectBoundingBox">
-                <Stop offset="0" stopColor="#2a62d6" stopOpacity={0.55} />
-                <Stop offset="1" stopColor="#2a62d6" stopOpacity={0} />
+              <RadialGradient id="g" cx="18%" cy="0%" rx="60%" ry="32%" gradientUnits="objectBoundingBox">
+                <Stop offset="0" stopColor="#1f4fb8" stopOpacity={0.7} />
+                <Stop offset="1" stopColor="#1f4fb8" stopOpacity={0} />
               </RadialGradient>
             )}
           </Defs>
