@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "ISLAM UA",
+    "slug": "islam-ua",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "islamua",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "ua.islamua.app",
+      "buildNumber": "1",
+      "supportsTablet": false,
+      "infoPlist": {
+        "CFBundleDisplayName": "ISLAM UA",
+        "CFBundleDevelopmentRegion": "ru",
+        "CFBundleLocalizations": ["ru", "uk"],
+        "NSLocationWhenInUseUsageDescription": "Нужно для точного расчёта времени намаза и направления Киблы.",
+        "NSMotionUsageDescription": "Нужно для компаса Киблы.",
+        "UIBackgroundModes": ["audio"],
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "ua.islamua.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1E56C9",
+        "foregroundImage": "./assets/splash-icon.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/icon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "backgroundColor": "#0B2A6F",
+          "dark": { "backgroundColor": "#0B2A6F" }
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/ScheherazadeNew-Regular.ttf",
+            "./assets/fonts/ScheherazadeNew-Medium.ttf",
+            "./assets/fonts/Amiri-Regular.ttf",
+            "./assets/fonts/Amiri-Bold.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-notifications",
+        { "icon": "./assets/splash-icon.png", "color": "#F0C75E" }
+      ],
+      [
+        "expo-location",
+        { "locationWhenInUsePermission": "Нужно для точного расчёта времени намаза и направления Киблы." }
+      ],
+      "expo-audio",
+      "expo-sensors"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
