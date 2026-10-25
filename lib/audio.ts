@@ -66,3 +66,15 @@ export function stopAyah() {
 export const isPlaying = (ref: string) => !!player && current === ref && player.playing;
 export const currentRef = () => current;
 export function onAudio(fn: Listener) { listeners.add(fn); return () => { listeners.delete(fn); }; }
+
+/* Короткий звук (буква алфавита) — локальный файл из бандла; общий плеер, прерывает аят */
+import { LETTER_AUDIO } from './letterAudio';
+export function playLetter(audioPath?: string) {
+  if (!audioPath) return;
+  const m = audioPath.match(/(\d{2})\.mp3$/); const key = m?.[1];
+  const src = key ? LETTER_AUDIO[key] : undefined;
+  if (!src) return;
+  const p = getPlayer();
+  current = null; queue = []; wasPlaying = false;
+  try { p.replace(src); p.play(); } catch { /* ignore */ }
+}

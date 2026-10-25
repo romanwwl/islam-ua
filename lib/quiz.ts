@@ -41,7 +41,7 @@ export const MODES: Record<ModeKey, Mode> = {
   surah:    { title: 'Суры',         data: SURAHS,  label: s => s.lb,   id: s => String(s.n), glyph: '114', latin: true },
   listen:   { title: 'На слух',      data: LISTEN,  label: a => a.ru,   id: a => a.ref, glyph: 'سَمَاع', single: true },
   spell:    { title: 'Собери слово', data: SPELL_WORDS, label: w => w.sk, id: w => w.ar, glyph: 'ب+ي+ت', round: 20, custom: 'spell' },
-  missing:  { title: 'Пропущенная буква', data: MISSING, label: x => (x.ans !== undefined ? x.ans : x.letter), id: x => x.ar, glyph: 'كتـ؟ب', round: 30, ownOpts: true, arOpts: true },
+  missing:  { title: 'Найди букву', data: MISSING, label: x => (x.ans !== undefined ? x.ans : x.letter), id: x => x.ar, glyph: 'كتـ؟ب', round: 30, ownOpts: true, arOpts: true },
   harakat:  { title: 'Огласовки',    data: HARAKAT_ITEMS, label: x => (x.ans !== undefined ? x.ans : x.ar), id: x => x.ar, glyph: 'ـَـُـِ', round: 30, ownOpts: true, arOpts: true, single: true },
 };
 export const MODE_KEYS = Object.keys(MODES) as ModeKey[];
