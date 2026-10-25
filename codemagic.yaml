@@ -47,6 +47,16 @@ workflows:
       - name: Install CocoaPods
         script: |
           cd ios
+          # Ресурсные бандлы подов не должны подписываться профилем приложения (иначе archive падает сразу)
+          cat >> Podfile <<'RUBY'
+
+post_install do |installer|
+  installer.pods_project.targets.each do |t|
+    next unless t.respond_to?(:product_type) && t.product_type == 'com.apple.product-type.bundle'
+    t.build_configurations.each { |c| c.build_settings['CODE_SIGNING_ALLOWED'] = 'NO' }
+  end
+end
+RUBY
           pod install --repo-update
           ls -d Pods ISLAMUA.xcworkspace
 
@@ -70,7 +80,17 @@ workflows:
           cd ios && agvtool new-version -all "$NEXT"
 
       - name: Build .ipa
-        script: xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
+        script: |
+          set +e
+          xcode-project build-ipa --workspace "$XCODE_WORKSPACE" --scheme "$XCODE_SCHEME"
+          STATUS=$?
+          if [ "$STATUS" -ne 0 ]; then
+            echo "===== ПРИЧИНА ОШИБКИ (строки с error из лога Xcode) ====="
+            grep -h -n -B2 -A6 "error:" /tmp/xcodebuild_logs/*.log 2>/dev/null | head -120
+            echo "===== Последние 60 строк лога ====="
+            tail -n 60 /tmp/xcodebuild_logs/*.log 2>/dev/null
+          fi
+          exit $STATUS
 
     artifacts:
       - build/ios/ipa/*.ipa
