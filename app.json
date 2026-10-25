@@ -25,7 +25,8 @@
           "audio"
         ],
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "entitlements": {}
     },
     "android": {
       "package": "ua.islamua.app",
@@ -65,13 +66,6 @@
         }
       ],
       [
-        "expo-notifications",
-        {
-          "icon": "./assets/splash-icon.png",
-          "color": "#F0C75E"
-        }
-      ],
-      [
         "expo-location",
         {
           "locationWhenInUsePermission": "Нужно для точного расчёта времени намаза и направления Киблы."
@@ -83,7 +77,8 @@
           "microphonePermission": false
         }
       ],
-      "expo-sensors"
+      "expo-sensors",
+      "./plugins/withoutPush.js"
     ],
     "experiments": {
       "typedRoutes": true
