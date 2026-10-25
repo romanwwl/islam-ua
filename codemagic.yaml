@@ -41,8 +41,14 @@ workflows:
       - name: Install npm dependencies
         script: npm ci
 
-      - name: Generate the native iOS project (Expo prebuild + CocoaPods)
-        script: npx expo prebuild --platform ios
+      - name: Generate the native iOS project (Expo prebuild)
+        script: npx expo prebuild --platform ios --no-install
+
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install --repo-update
+          ls -d Pods ISLAMUA.xcworkspace
 
       - name: Apply code signing to Xcode project
         script: xcode-project use-profiles --project "ios/ISLAMUA.xcodeproj"
