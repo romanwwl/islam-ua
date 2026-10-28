@@ -1,6 +1,6 @@
 /* Учёба: приветствие, «Повторение (N)», четыре раздела по 2–3 карточки и испытание «Все 99 имён по памяти». */
 import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, View, StyleSheet } from 'react-native';
+import { ScrollView, View, StyleSheet, Pressable } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '../../components/Header';
@@ -23,7 +23,9 @@ const SECTIONS: { title: string; sub: string; modes: ModeKey[] }[] = [
 export default function Learn() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, isDark, style } = useTheme();
+  const learnKind = style.learn;
+  const TINTS = [colors.prayerIsha, colors.prayerDhuhr, colors.prayerFajr, colors.prayerAsr, colors.prayerMaghrib, colors.prayerSunrise, colors.accent, colors.prayerIsha, colors.prayerFajr, colors.prayerAsr, colors.prayerDhuhr];
   const [tick, setTick] = useState(0);
   const bump = useCallback(() => setTick(t => t + 1), []);
   useEffect(() => onProgress(bump), [bump]);
@@ -68,6 +70,62 @@ export default function Learn() {
               <Txt kind="title">{sec.title}</Txt>
               <Txt kind="footnote" color="labelSecondary">{sec.sub}</Txt>
             </View>
+            {learnKind === 'rows' ? (
+              <Card style={{ padding: 0 }}>
+                {sec.modes.map((m, i) => {
+                  const s = stats[m]; const p = pendingSession(m); const mode = MODES[m];
+                  return (
+                    <Pressable key={m} onPress={() => open(m)} accessibilityRole="button" accessibilityLabel={`${mode.title}, выучено ${s.learned} из ${s.total}`}
+                      style={({ pressed }) => [styles.lrow, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }, pressed && { opacity: 0.7 }]}>
+                      <View style={{ width: 56, alignItems: 'center' }}>
+                        {mode.latin ? <Txt kind="title" color="accent" style={{ fontWeight: '700' }} numberOfLines={1} adjustsFontSizeToFit>{mode.glyph}</Txt>
+                          : <Ar kind="arInline" color="accent" style={{ fontSize: mode.glyph.length > 3 ? 18 : 28, lineHeight: 36, textAlign: 'center' }} numberOfLines={1} adjustsFontSizeToFit>{mode.glyph}</Ar>}
+                      </View>
+                      <View style={{ flex: 1, gap: 5 }}>
+                        <Txt style={{ fontWeight: '600' }} numberOfLines={1}>{mode.title}</Txt>
+                        <View style={[styles.bar, { backgroundColor: colors.fill, height: 3 }]}>
+                          <View style={[styles.barFill, { backgroundColor: colors.accent, opacity: 0.35, width: `${s.total ? (s.learned + s.learning) / s.total * 100 : 0}%` }]} />
+                          <View style={[styles.barFill, { backgroundColor: colors.accent, width: `${s.total ? s.learned / s.total * 100 : 0}%` }]} />
+                        </View>
+                      </View>
+                      <View style={{ alignItems: 'flex-end', gap: 2 }}>
+                        <Txt kind="subheadline" color="labelSecondary" style={{ fontVariant: ['tabular-nums'], fontWeight: '600' }}>{s.learned} / {s.total}</Txt>
+                        {p ? <Txt kind="caption" color="accent">продолжить</Txt> : s.due ? <Txt kind="caption" color="accent" style={{ fontWeight: '600' }}>{s.due} к повторению</Txt> : null}
+                      </View>
+                      <Icon name="chevronRight" size={14} color={colors.labelTertiary} />
+                    </Pressable>
+                  );
+                })}
+              </Card>
+            ) : learnKind === 'tiles' || learnKind === 'colored' ? (
+              <View style={styles.grid}>
+                {sec.modes.map((m, i) => {
+                  const s = stats[m]; const p = pendingSession(m); const mode = MODES[m];
+                  const colored = learnKind === 'colored';
+                  const tint = TINTS[(SECTIONS.indexOf(sec) * 3 + i) % TINTS.length];
+                  const bg = colored ? tint : undefined;
+                  const fg = colored ? (isDark ? '#0b1a3b' : '#ffffff') : colors.label;
+                  const wide = sec.modes.length === 2 || (sec.modes.length === 3 && i === 2);
+                  return (
+                    <Tap key={m} onPress={() => open(m)} accessibilityRole="button" accessibilityLabel={`${mode.title}, выучено ${s.learned} из ${s.total}`} style={[styles.cell2, wide && styles.cellWide2]}>
+                      <Card style={[styles.tile, bg ? { backgroundColor: bg, borderWidth: 0 } : null]}>
+                        <View style={{ position: 'absolute', right: 10, top: -2, maxWidth: '58%', opacity: colored ? 0.55 : 0.16 }} pointerEvents="none">
+                          {mode.latin ? <Txt kind="title" style={{ fontSize: 44, lineHeight: 56, fontWeight: '800', color: colored ? fg : colors.arabic }} numberOfLines={1}>{mode.glyph}</Txt>
+                            : <Ar kind="arInline" style={{ fontSize: mode.glyph.length > 3 ? 34 : 60, lineHeight: 74, color: colored ? fg : colors.arabic }} numberOfLines={1}>{mode.glyph}</Ar>}
+                        </View>
+                        <View style={{ gap: 3 }}>
+                          <Txt kind="subheadline" style={{ fontWeight: '700', color: fg }} numberOfLines={2}>{mode.title}</Txt>
+                          <Txt kind="caption" style={{ color: fg, opacity: colored ? 0.85 : 0.7 }}>{s.learned} из {s.total}{p ? ' · продолжить' : s.due ? ` · ${s.due} к повторению` : ''}</Txt>
+                          <View style={[styles.bar, { backgroundColor: colored ? 'rgba(255,255,255,0.3)' : colors.fill }]}>
+                            <View style={[styles.barFill, { backgroundColor: colored ? fg : colors.accent, width: `${s.total ? s.learned / s.total * 100 : 0}%` }]} />
+                          </View>
+                        </View>
+                      </Card>
+                    </Tap>
+                  );
+                })}
+              </View>
+            ) : (
             <View style={styles.grid}>
               {sec.modes.map(m => {
                 const s = stats[m]; const p = pendingSession(m); const mode = MODES[m];
@@ -94,6 +152,7 @@ export default function Learn() {
                 );
               })}
             </View>
+            )}
             {sec.modes.includes('names') && (
               <Tap onPress={() => router.push('/names99')} accessibilityRole="button">
                 <Card strong style={{ gap: 8 }}>
@@ -119,6 +178,10 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   cell: { width: '31.5%' },
   cellWide: { width: '48.5%' },
+  cell2: { width: '48.5%' },
+  cellWide2: { width: '100%' },
+  tile: { minHeight: 112, padding: 14, justifyContent: 'flex-end', overflow: 'hidden' },
+  lrow: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 64, paddingHorizontal: 12, paddingVertical: 10 },
   tcard: { minHeight: 148, padding: 12, justifyContent: 'space-between', gap: 10 },
   bar: { height: 4, borderRadius: 2, overflow: 'hidden' },
   barFill: { position: 'absolute', left: 0, top: 0, bottom: 0, borderRadius: 2 },

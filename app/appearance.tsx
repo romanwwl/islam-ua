@@ -1,4 +1,4 @@
-/* Профиль → Оформление: шесть тем, узор на фоне, ночная Полночь, арабский шрифт. */
+/* Профиль → Оформление: стиль (компоновка), двенадцать тем, узор на фоне, ночная Полночь, арабский шрифт. */
 import React from 'react';
 import { ScrollView, View, Pressable, StyleSheet, Text } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ import { Card, SectionHeader, Txt } from '../components/ui';
 import { Icon } from '../components/Icons';
 import { Toggle } from '../components/Toggle';
 import { useTheme, THEME_IDS, THEME_NAMES, COLORS } from '../theme/ThemeProvider';
+import { STYLES } from '../theme/styles';
 import { FONTS, RADIUS, SPACE } from '../theme/tokens';
 import { hapticTap } from '../lib/haptics';
 import { useThemeSettings } from '../lib/settings';
@@ -21,6 +22,26 @@ export default function Appearance() {
     <View style={{ flex: 1 }}>
       <ScreenTop title="Оформление" onClose={() => router.back()} />
       <ScrollView contentContainerStyle={{ padding: SPACE[16], paddingBottom: insets.bottom + 32, gap: SPACE[24] }} showsVerticalScrollIndicator={false}>
+        <View>
+          <SectionHeader>Стиль</SectionHeader>
+          <Card style={{ padding: 0 }}>
+            {STYLES.map((st, i) => {
+              const selected = s.style === st.id;
+              return (
+                <Pressable key={st.id} onPress={() => { hapticTap(); t.setStyle(st.id); }} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={st.name}
+                  style={({ pressed }) => [styles.row, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: t.colors.separator }, pressed && { opacity: 0.7 }]}>
+                  <View style={{ flexShrink: 1, gap: 2 }}>
+                    <Txt style={{ fontWeight: selected ? '700' : '500' }}>{i + 1}. {st.name}</Txt>
+                    <Txt kind="footnote" color="labelSecondary">{st.desc}</Txt>
+                  </View>
+                  <View style={{ width: 22, alignItems: 'center' }}>{selected && <Icon name="checkmark" size={20} color={t.colors.accent} />}</View>
+                </Pressable>
+              );
+            })}
+          </Card>
+          <Txt kind="footnote" color="labelSecondary" style={{ paddingHorizontal: SPACE[16], paddingTop: 6 }}>Стиль меняет компоновку: отсчёт, намазы, карточки, таб-бар, шрифт, Учёбу. Цвета — отдельно, в теме.</Txt>
+        </View>
+
         <View>
           <SectionHeader>Тема</SectionHeader>
           <View style={styles.grid}>
@@ -43,7 +64,7 @@ export default function Appearance() {
               );
             })}
           </View>
-          <Txt kind="footnote" color="labelSecondary" style={{ paddingHorizontal: SPACE[16], paddingTop: 6 }}>Тема применяется ко всему приложению. Пергамент и Песок — светлые.</Txt>
+          <Txt kind="footnote" color="labelSecondary" style={{ paddingHorizontal: SPACE[16], paddingTop: 6 }}>Тема применяется ко всему приложению. Пергамент, Песок и Утро — светлые; с 7-й по 12-ю — синие мягче Сапфира.</Txt>
         </View>
 
         <Card style={{ padding: 0 }}>

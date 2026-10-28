@@ -7,11 +7,11 @@ import { useTheme } from '../theme/ThemeProvider';
 import type { ThemeId } from '../theme/tokens';
 
 type PatternKind = 'octagram' | 'lattice' | 'carpet' | 'glow' | 'none';
-const KIND: Record<ThemeId, PatternKind> = { sapphire: 'glow', midnight: 'octagram', emerald: 'lattice', maroon: 'carpet', parchment: 'octagram', sand: 'none' };
+const KIND: Record<ThemeId, PatternKind> = { sapphire: 'glow', midnight: 'octagram', emerald: 'lattice', maroon: 'carpet', parchment: 'octagram', sand: 'none', deepwater: 'lattice', slate: 'none', denim: 'glow', dusk: 'octagram', steel: 'carpet', morning: 'none' };
 
 export function Background({ children }: { children?: React.ReactNode }) {
   const { id, colors, pattern, isDark } = useTheme();
-  const kind = pattern ? KIND[id] : (id === 'sapphire' ? 'glow' : 'none');
+  const kind = pattern ? KIND[id] : (KIND[id] === 'glow' ? 'glow' : 'none');
   const stroke = isDark ? colors.accent : colors.arabic;
   const opacity = isDark ? 0.10 : 0.07;
   return (
@@ -48,8 +48,8 @@ export function Background({ children }: { children?: React.ReactNode }) {
             )}
             {kind === 'glow' && (
               <RadialGradient id="g" cx="18%" cy="0%" rx="60%" ry="32%" gradientUnits="objectBoundingBox">
-                <Stop offset="0" stopColor="#1f4fb8" stopOpacity={0.7} />
-                <Stop offset="1" stopColor="#1f4fb8" stopOpacity={0} />
+                <Stop offset="0" stopColor={colors.cardStrong} stopOpacity={0.9} />
+                <Stop offset="1" stopColor={colors.cardStrong} stopOpacity={0} />
               </RadialGradient>
             )}
           </Defs>

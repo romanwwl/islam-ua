@@ -43,6 +43,14 @@ export default function RootLayout() {
     'ScheherazadeNew-Medium': require('../assets/fonts/ScheherazadeNew-Medium.ttf'),
     'Amiri-Regular': require('../assets/fonts/Amiri-Regular.ttf'),
     'Amiri-Bold': require('../assets/fonts/Amiri-Bold.ttf'),
+    Manrope_500Medium: require('../assets/fonts/Manrope_500Medium.ttf'),
+    Manrope_600SemiBold: require('../assets/fonts/Manrope_600SemiBold.ttf'),
+    Manrope_700Bold: require('../assets/fonts/Manrope_700Bold.ttf'),
+    Manrope_800ExtraBold: require('../assets/fonts/Manrope_800ExtraBold.ttf'),
+    Nunito_600SemiBold: require('../assets/fonts/Nunito_600SemiBold.ttf'),
+    Nunito_700Bold: require('../assets/fonts/Nunito_700Bold.ttf'),
+    Nunito_800ExtraBold: require('../assets/fonts/Nunito_800ExtraBold.ttf'),
+    Nunito_900Black: require('../assets/fonts/Nunito_900Black.ttf'),
   });
   const [ready, setReady] = useState(false);
   const [night, setNight] = useState(false);

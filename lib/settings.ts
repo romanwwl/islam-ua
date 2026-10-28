@@ -3,6 +3,7 @@ import { createStore, useStore } from './store';
 import { load, save } from './storage';
 import { DEFAULT_STATE, type PrayerState } from './prayer';
 import { type ThemeId } from '../theme/tokens';
+import { type StyleId } from '../theme/styles';
 
 const PKEY = 'islamua_prayer';
 const NKEY = 'islamua_notify';
@@ -14,8 +15,8 @@ export type NotifyState = { on: boolean; prayers: Record<NotifyKey, boolean> };
 export const DEFAULT_NOTIFY: NotifyState = { on: false, prayers: { fajr: true, dhuhr: true, asr: true, maghrib: true, isha: true } };
 
 export type ArabicFont = 'scheherazade' | 'amiri';
-export type ThemeState = { theme: ThemeId; pattern: boolean; nightMidnight: boolean; arabicFont: ArabicFont };
-export const DEFAULT_THEME: ThemeState = { theme: 'sapphire', pattern: true, nightMidnight: false, arabicFont: 'scheherazade' };
+export type ThemeState = { theme: ThemeId; style: StyleId; pattern: boolean; nightMidnight: boolean; arabicFont: ArabicFont };
+export const DEFAULT_THEME: ThemeState = { theme: 'sapphire', style: 'focus', pattern: true, nightMidnight: false, arabicFont: 'scheherazade' };
 
 export const prayerStore = createStore<PrayerState>({ ...DEFAULT_STATE }, v => save(PKEY, v));
 export const notifyStore = createStore<NotifyState>({ ...DEFAULT_NOTIFY }, v => save(NKEY, v));

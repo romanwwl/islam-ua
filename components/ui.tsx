@@ -9,14 +9,18 @@ type TypeKey = keyof typeof TYPE;
 
 /* Текст интерфейса. kind — стиль из дизайн-системы, color — ключ цвета темы или любой цвет. */
 export function Txt({ kind = 'body', color = 'label', style, children, ...rest }: TextProps & { kind?: TypeKey; color?: string }) {
-  const { colors } = useTheme();
+  const { colors, ui } = useTheme();
   const t = TYPE[kind] as { fontSize: number; lineHeight: number; fontWeight: TextStyle['fontWeight']; letterSpacing?: number };
   const c = (colors as Record<string, string>)[color] ?? color;
   const rounded = kind === 'countdown' || kind === 'countdownUnit';
+  // вес может прийти и через style — шрифт стиля подбираем по итоговому весу
+  const flat = StyleSheet.flatten(style) as TextStyle | undefined;
+  const weight = flat?.fontWeight ?? t.fontWeight;
+  const family = rounded ? FONTS.rounded : ui(weight);
   return (
     <Text
       {...rest}
-      style={[{ fontSize: t.fontSize, lineHeight: t.lineHeight, fontWeight: t.fontWeight, letterSpacing: t.letterSpacing ?? 0, color: c, fontFamily: rounded ? FONTS.rounded : undefined, fontVariant: rounded ? ['tabular-nums'] : undefined }, style]}
+      style={[{ fontSize: t.fontSize, lineHeight: t.lineHeight, fontWeight: t.fontWeight, letterSpacing: t.letterSpacing ?? 0, color: c, fontFamily: family, fontVariant: rounded ? ['tabular-nums'] : undefined }, style, family ? { fontFamily: family } : null]}
     >{children}</Text>
   );
 }
@@ -33,8 +37,15 @@ export function Ar({ kind = 'arText', color = 'arabic', bold = false, style, chi
 
 /* Карточка на фоне — сплошная заливка card, скругление 26 */
 export function Card({ style, strong = false, children, ...rest }: ViewProps & { strong?: boolean }) {
-  const { colors } = useTheme();
-  return <View {...rest} style={[{ backgroundColor: strong ? colors.cardStrong : colors.card, borderRadius: RADIUS.card, padding: SPACE[16] }, style]}>{children}</View>;
+  const { colors, style: st, r, isDark } = useTheme();
+  const k = st.cards;
+  const look: ViewStyle =
+    k === 'glass' ? { backgroundColor: strong ? colors.fillStrong : colors.glassSelected, borderWidth: 1, borderColor: colors.separator }
+    : k === 'outlined' ? { backgroundColor: strong ? colors.fill : 'transparent', borderWidth: 1, borderColor: isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.14)' }
+    : k === 'flat' ? { backgroundColor: strong ? colors.fillStrong : colors.fill }
+    : k === 'none' ? { backgroundColor: strong ? colors.fill : 'transparent', borderRadius: 0, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.separator }
+    : { backgroundColor: strong ? colors.cardStrong : colors.card };
+  return <View {...rest} style={[{ borderRadius: r(RADIUS.card), padding: SPACE[16] }, look, style]}>{children}</View>;
 }
 
 /* Подпись секции капителью над карточкой */
@@ -63,13 +74,13 @@ export function Tap({ style, children, scale = 0.97, ...rest }: PressableProps &
 
 /* Капсульная кнопка: filled | gray | plain */
 export function Button({ title, variant = 'filled', small = false, disabled, icon, onPress, style }: { title: string; variant?: 'filled' | 'gray' | 'plain'; small?: boolean; disabled?: boolean; icon?: React.ReactNode; onPress?: () => void; style?: StyleProp<ViewStyle> }) {
-  const { colors } = useTheme();
+  const { colors, ui } = useTheme();
   const bg = variant === 'filled' ? colors.accent : variant === 'gray' ? colors.fill : 'transparent';
   const fg = variant === 'filled' ? colors.onAccent : colors.accent;
   return (
     <Tap onPress={onPress} disabled={disabled} accessibilityRole="button" style={[styles.btn, small && styles.btnSmall, variant === 'plain' && { paddingHorizontal: 8 }, { backgroundColor: disabled ? colors.fill : bg, opacity: disabled ? 0.6 : 1 }, style]}>
       {icon}
-      <Text style={{ fontSize: small ? 15 : 17, lineHeight: small ? 20 : 22, fontWeight: small ? '500' : '600', letterSpacing: small ? -0.23 : -0.43, color: disabled ? colors.labelTertiary : fg }}>{title}</Text>
+      <Text style={{ fontSize: small ? 15 : 17, lineHeight: small ? 20 : 22, fontWeight: small ? '500' : '600', letterSpacing: small ? -0.23 : -0.43, color: disabled ? colors.labelTertiary : fg, fontFamily: ui(small ? 500 : 600) }}>{title}</Text>
     </Tap>
   );
 }

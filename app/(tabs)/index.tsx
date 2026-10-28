@@ -4,8 +4,8 @@ import { ScrollView, View, AppState } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Header } from '../../components/Header';
-import { Countdown } from '../../components/Countdown';
-import { PrayerRow } from '../../components/PrayerRow';
+import { Hero } from '../../components/Hero';
+import { Prayers } from '../../components/PrayerViews';
 import { AyahCard, HadithCard, DuaCard, NameCard } from '../../components/DailyCards';
 import { QiblaCard } from '../../components/Qibla';
 import { Card, Row } from '../../components/ui';
@@ -60,8 +60,8 @@ export default function Today() {
     <ScrollView contentContainerStyle={{ paddingTop: insets.top, paddingBottom: TAB_BAR_SPACE + insets.bottom }} contentInsetAdjustmentBehavior="never" showsVerticalScrollIndicator={false}>
       <Header title={fmtDateRu(now)} subtitle={hijri(now)} action="sliders" actionLabel="Настройки намаза" onAction={() => router.push('/(tabs)/profile')} />
 
-      <Countdown next={next} note={`${methodShort} · ${coords.name}`} />
-      <PrayerRow times={times} now={now} nextKey={highlighted} onPress={() => router.push('/(tabs)/profile')} />
+      <Hero next={next} times={times} now={now} note={`${methodShort} · ${coords.name}`} />
+      <Prayers times={times} now={now} nextKey={highlighted} onPress={() => router.push('/(tabs)/profile')} />
 
       <View style={{ paddingHorizontal: SPACE[16], gap: SPACE[24] }}>
         <Card style={{ padding: 0 }}>
