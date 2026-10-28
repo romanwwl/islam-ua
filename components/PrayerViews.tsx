@@ -1,4 +1,4 @@
-/* Времена намазов в разных компоновках (по стилю): chips — ряд из шести (PrayerRow); timeline — вертикальная лента с точками;
+/* Времена намазов в разных компоновках (по стилю). Статус не подписывается словами: прошедшие приглушены, следующий — цветом акцента. chips — ряд из шести (PrayerRow); timeline — вертикальная лента с точками;
    tiles — 3×2 цветные плитки (цвет каждого намаза); list — карточка со строками; mono — 3×2 плитки цвета карточки. */
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
@@ -40,7 +40,6 @@ function Timeline({ times, now, nextKey, onPress }: Props) {
             </View>
             <PrayerIcon prayer={k} size={20} dim={past} />
             <Text style={[styles.tlName, { color, fontFamily: ui(isNext ? 700 : 400), fontWeight: isNext ? '700' : '400' }]}>{PRAYER_RU[k]}</Text>
-            {isNext ? <Txt kind="caption" color="accent" style={{ fontWeight: '600' }}>следующий</Txt> : past ? <Txt kind="caption" color="labelTertiary">прошёл</Txt> : null}
           </Pressable>
         );
       })}
@@ -85,7 +84,6 @@ function List({ times, now, nextKey, onPress }: Props) {
               style={[styles.lrow, i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.separator }, isNext && { backgroundColor: colors.fill }]}>
               <PrayerIcon prayer={k} size={22} dim={past} />
               <Text style={[styles.lname, { color, fontFamily: ui(isNext ? 600 : 400), fontWeight: isNext ? '600' : '400' }]}>{PRAYER_RU[k]}</Text>
-              {isNext && <Txt kind="caption" color="accent" style={{ fontWeight: '600' }}>следующий</Txt>}
               <Text style={[styles.ltime, { color, fontFamily: ui(isNext ? 700 : 500), fontWeight: isNext ? '700' : '500' }]}>{fmtTime(at)}</Text>
             </Pressable>
           );
